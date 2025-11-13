@@ -9,11 +9,13 @@ const sortWindowButton = document.getElementById("sort-window");
 const sortRecentButton = document.getElementById("sort-recent");
 const sortOldestButton = document.getElementById("sort-oldest");
 const expandButton = document.getElementById("expand-button");
+const togglePinnedButton = document.getElementById("toggle-pinned");
 
 const selectedTabIds = new Set();
 let tabCache = [];
 let sortMode = "window";
 const SORT_MODE_KEY = "tabulaRasa.sortMode";
+let hidePinned = true;
 
 function isValidSortMode(mode) {
   return mode === "window" || mode === "recent" || mode === "oldest";
@@ -52,6 +54,15 @@ function toggleEmptyState() {
   emptyState.classList.toggle("hidden", hasTabs);
 }
 
+function updatePinnedToggleState() {
+  if (!togglePinnedButton) {
+    return;
+  }
+  togglePinnedButton.classList.toggle("active", hidePinned);
+  togglePinnedButton.setAttribute("aria-pressed", String(hidePinned));
+  togglePinnedButton.textContent = hidePinned ? "Hide pinned" : "Show pinned";
+}
+
 function handleCheckboxChange(tabId, checkbox) {
   if (checkbox.checked) {
     selectedTabIds.add(tabId);
@@ -68,10 +79,15 @@ function removeClosedTabs(closedIds) {
     selectedTabIds.delete(tabId);
   });
   updateCloseButtonState();
-  renderTabs(getSortedTabs());
+  renderTabs(getVisibleTabs());
 }
 
 function renderTabs(tabs) {
+  const activeTabId =
+    document.activeElement?.closest(".tab-item")?.dataset.tabId ?? null;
+  let itemToRefocus = null;
+  let firstItem = null;
+
   tabContainer.innerHTML = "";
   tabs.forEach((tab) => {
     const clone = tabTemplate.content.cloneNode(true);
@@ -80,6 +96,8 @@ function renderTabs(tabs) {
     const titleButton = clone.querySelector(".tab-title");
 
     item.dataset.tabId = tab.id;
+    item.tabIndex = 0;
+
     const displayTitle = tab.title?.trim() || tab.url || "Untitled tab";
     titleButton.textContent = displayTitle;
     titleButton.title = displayTitle;
@@ -89,9 +107,24 @@ function renderTabs(tabs) {
     titleButton.addEventListener("click", () => focusTab(tab.id, tab.windowId));
 
     tabContainer.appendChild(clone);
+
+    if (!firstItem) {
+      firstItem = item;
+    }
+
+    if (activeTabId && String(tab.id) === activeTabId) {
+      itemToRefocus = item;
+    }
   });
 
   toggleEmptyState();
+
+  const targetItem = itemToRefocus ?? firstItem;
+  if (targetItem) {
+    requestAnimationFrame(() => {
+      targetItem?.focus();
+    });
+  }
 }
 
 async function loadTabs() {
@@ -104,8 +137,9 @@ async function loadTabs() {
       url: tab.url,
       index: tab.index ?? 0,
       lastAccessed: tab.lastAccessed ?? 0,
+      pinned: Boolean(tab.pinned),
     }));
-    renderTabs(getSortedTabs());
+    renderTabs(getVisibleTabs());
     updateSortButtonState();
   } catch (error) {
     console.error("Failed to load tabs:", error);
@@ -193,13 +227,21 @@ function getSortedTabs() {
   return tabs.sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
 }
 
+function getVisibleTabs() {
+  const sorted = getSortedTabs();
+  if (!hidePinned) {
+    return sorted;
+  }
+  return sorted.filter((tab) => !tab.pinned);
+}
+
 function setSortMode(mode) {
   if (mode === sortMode) {
     return;
   }
   sortMode = mode;
   updateSortButtonState();
-  renderTabs(getSortedTabs());
+  renderTabs(getVisibleTabs());
   persistSortMode(sortMode).catch((error) => {
     console.error("Unexpected error persisting sort mode:", error);
   });
@@ -209,6 +251,15 @@ if (sortWindowButton && sortRecentButton && sortOldestButton) {
   sortWindowButton.addEventListener("click", () => setSortMode("window"));
   sortRecentButton.addEventListener("click", () => setSortMode("recent"));
   sortOldestButton.addEventListener("click", () => setSortMode("oldest"));
+}
+
+if (togglePinnedButton) {
+  togglePinnedButton.addEventListener("click", () => {
+    hidePinned = !hidePinned;
+    updatePinnedToggleState();
+    renderTabs(getVisibleTabs());
+  });
+  updatePinnedToggleState();
 }
 
 if (expandButton) {
@@ -232,4 +283,74 @@ async function init() {
 init().catch((error) => {
   console.error("Unexpected error initializing popup:", error);
 });
+
+function handleGlobalKeydown(event) {
+  const isModifier = event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
+
+  if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+    if (!closeButton.disabled) {
+      event.preventDefault();
+      closeButton.click();
+    }
+    return;
+  }
+
+  const activeElement = document.activeElement;
+  if (!activeElement) {
+    return;
+  }
+  const activeItem = activeElement.closest(".tab-item");
+  if (!activeItem) {
+    return;
+  }
+
+  const checkbox = activeItem.querySelector(".tab-toggle");
+  if (!checkbox) {
+    return;
+  }
+
+  if ((event.code === "Space" || event.key === " ") && !isModifier) {
+    event.preventDefault();
+    checkbox.click();
+    requestAnimationFrame(() => {
+      if (document.activeElement !== activeItem) {
+        activeItem.focus();
+      }
+    });
+    return;
+  }
+
+  if (
+    (event.key === "j" || event.key === "J") &&
+    !(event.altKey || event.ctrlKey || event.metaKey)
+  ) {
+    focusRelativeItem(activeItem, 1);
+    event.preventDefault();
+    return;
+  }
+
+  if (
+    (event.key === "k" || event.key === "K") &&
+    !(event.altKey || event.ctrlKey || event.metaKey)
+  ) {
+    focusRelativeItem(activeItem, -1);
+    event.preventDefault();
+  }
+}
+
+function focusRelativeItem(currentItem, offset) {
+  const items = Array.from(tabContainer.querySelectorAll(".tab-item"));
+  const currentIndex = items.indexOf(currentItem);
+  if (currentIndex === -1) {
+    return;
+  }
+  const targetIndex = currentIndex + offset;
+  if (targetIndex < 0 || targetIndex >= items.length) {
+    return;
+  }
+  const targetItem = items[targetIndex];
+  targetItem?.focus();
+}
+
+document.addEventListener("keydown", handleGlobalKeydown);
 

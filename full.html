@@ -34,6 +34,14 @@
     </header>
     <main>
       <div class="sort-controls" role="group" aria-label="Sort tabs">
+        <button
+          id="toggle-pinned"
+          type="button"
+          class="sort-button toggle-button active"
+          aria-pressed="true"
+        >
+          Hide pinned
+        </button>
         <button id="sort-window" type="button" class="sort-button active">Window order</button>
         <button id="sort-recent" type="button" class="sort-button">Recent first</button>
         <button id="sort-oldest" type="button" class="sort-button">Oldest first</button>
@@ -62,6 +70,15 @@
         Enjoying Tabula Rasa? Consider leaving a tip for the developer at
         <a href="https://paypal.me/fejikso" target="_blank" rel="noopener noreferrer">paypal.me/fejikso</a>.
       </p>
+      <p class="about-copy">
+        Keyboard shortcuts help you move quickly:
+      </p>
+      <ul class="about-list">
+        <li><kbd>Space</kbd> toggle the current tab selection.</li>
+        <li><kbd>Ctrl</kbd>+<kbd>Enter</kbd> (or <kbd>⌘</kbd>+<kbd>Enter</kbd>) closes selected tabs.</li>
+        <li><kbd>J</kbd> moves to the tab above, <kbd>K</kbd> moves to the one below.</li>
+      </ul>
+      <p class="about-copy">Use the Hide pinned toggle to reveal pinned tabs when needed.</p>
       <button id="about-close" type="button" class="secondary">Close</button>
     </aside>
 
