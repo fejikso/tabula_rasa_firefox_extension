@@ -25,6 +25,37 @@ const SORT_MODE_KEY = "tabulaRasa.sortMode";
 let hidePinned = true;
 let searchQuery = "";
 
+const dateFormatter = new Intl.DateTimeFormat(undefined, {
+  dateStyle: "medium",
+  timeStyle: "short",
+});
+const URL_DISPLAY_MAX = 80;
+
+function truncateUrl(url) {
+  if (!url || url.length <= URL_DISPLAY_MAX) {
+    return url;
+  }
+
+  const ellipsis = "…";
+  const keep = URL_DISPLAY_MAX - ellipsis.length;
+  const head = Math.ceil(keep * 0.6);
+  const tail = keep - head;
+  return `${url.slice(0, head)}${ellipsis}${url.slice(-tail)}`;
+}
+
+function formatLastAccessed(timestamp) {
+  if (!timestamp || Number.isNaN(timestamp)) {
+    return "unknown";
+  }
+
+  try {
+    return dateFormatter.format(new Date(timestamp));
+  } catch (error) {
+    console.error("Failed to format last accessed timestamp:", error);
+    return "unknown";
+  }
+}
+
 function getActiveTabItem() {
   const activeElement = document.activeElement;
   const activeItem = activeElement?.closest(".tab-item");
@@ -128,6 +159,8 @@ function renderTabs(tabs) {
     const item = clone.querySelector(".tab-item");
     const checkbox = clone.querySelector(".tab-toggle");
     const titleButton = clone.querySelector(".tab-title");
+    const urlSpan = clone.querySelector(".tab-url");
+    const lastAccessedSpan = clone.querySelector(".tab-last-accessed");
 
     item.dataset.tabId = tab.id;
     item.tabIndex = 0;
@@ -139,6 +172,21 @@ function renderTabs(tabs) {
 
     checkbox.addEventListener("change", () => handleCheckboxChange(tab.id, checkbox));
     titleButton.addEventListener("click", () => focusTab(tab.id, tab.windowId));
+
+    if (urlSpan) {
+      const urlText = tab.url ?? "";
+      const displayUrl = truncateUrl(urlText) || "URL unavailable";
+      urlSpan.textContent = displayUrl;
+      urlSpan.title = urlText || "URL unavailable";
+      urlSpan.classList.toggle("hidden", !isFullView && !urlText);
+    }
+
+    if (lastAccessedSpan) {
+      const formatted = formatLastAccessed(tab.lastAccessed);
+      lastAccessedSpan.textContent = formatted;
+      lastAccessedSpan.title = formatted;
+      lastAccessedSpan.classList.toggle("hidden", !isFullView);
+    }
 
     tabContainer.appendChild(clone);
 

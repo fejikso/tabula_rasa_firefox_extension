@@ -51,7 +51,7 @@
         <input
           id="search-tabs"
           type="search"
-          placeholder="Search tabs"
+          placeholder="Search tabs (press S)"
           autocomplete="off"
           spellcheck="false"
           inputmode="search"
@@ -131,7 +131,11 @@
         <label class="tab-checkbox">
           <input type="checkbox" class="tab-toggle" aria-label="Select tab to close" />
         </label>
-        <button type="button" class="tab-title"></button>
+        <div class="tab-content">
+          <button type="button" class="tab-title"></button>
+          <span class="tab-url" aria-hidden="true"></span>
+          <span class="tab-last-accessed" aria-hidden="true"></span>
+        </div>
       </div>
     </template>
 

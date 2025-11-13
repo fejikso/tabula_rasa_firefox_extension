@@ -224,7 +224,7 @@ body.layout-full .sort-controls {
   grid-template-columns: auto 1fr;
   align-items: center;
   gap: 12px;
-  padding: 10px 12px;
+  padding: 2px 10px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
   background: rgba(0, 0, 0, 0.02);
@@ -269,6 +269,54 @@ body.layout-full .sort-controls {
   text-overflow: ellipsis;
   white-space: nowrap;
   cursor: pointer;
+}
+
+.tab-content {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr);
+  gap: 2px;
+  min-width: 0;
+  align-items: center;
+}
+
+.tab-content span {
+  display: none;
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+body.layout-full .tab-content {
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) minmax(0, 1.2fr);
+  gap: 16px;
+}
+
+body.layout-full .tab-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+body.layout-full .tab-content span {
+  display: block;
+  font-size: 13px;
+}
+
+body.layout-full .tab-url {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+body.layout-full .tab-url:hover {
+  text-decoration: underline;
+}
+
+body.layout-full .tab-last-accessed {
+  text-align: right;
+  color: var(--muted);
+  white-space: nowrap;
 }
 
 .tab-title:focus-visible,
@@ -426,6 +474,17 @@ body.layout-full .about {
   background: var(--bg);
   border-color: rgba(0, 0, 0, 0.1);
   box-shadow: 0 18px 36px rgba(0, 0, 0, 0.16);
+  max-width: 420px;
+}
+
+body.layout-full .about:not(.hidden) {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(420px, calc(100% - 64px));
+  margin: 0;
+  z-index: 50;
 }
 
 .about-title {
