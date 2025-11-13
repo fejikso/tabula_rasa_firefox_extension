@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tabula Rasa</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Tabula Rasa</h1>
+      <p>Select the tabs you’re ready to close.</p>
+    </header>
+    <main>
+      <div class="sort-controls" role="group" aria-label="Sort tabs">
+        <button id="sort-window" type="button" class="sort-button active">Window order</button>
+        <button id="sort-recent" type="button" class="sort-button">Recent first</button>
+        <button id="sort-oldest" type="button" class="sort-button">Oldest first</button>
+      </div>
+      <section id="tab-container" aria-live="polite"></section>
+      <p id="empty-state" class="muted hidden">No tabs to show.</p>
+    </main>
+    <footer>
+      <button id="close-selected" type="button" disabled>Close selected tabs</button>
+      <button id="about-button" type="button" class="secondary">About</button>
+    </footer>
+
+    <aside
+      id="about-panel"
+      class="about hidden"
+      role="dialog"
+      aria-modal="false"
+      aria-label="About Tabula Rasa"
+      tabindex="-1"
+    >
+      <p class="about-title">Created by Fejikso.</p>
+      <p class="about-copy">
+        This tool is provided as-is. The creator is not responsible for any damage the software may cause.
+      </p>
+      <p class="about-copy">
+        Enjoying Tabula Rasa? Consider leaving a tip for the developer at
+        <a href="https://paypal.me/fejikso" target="_blank" rel="noopener noreferrer">paypal.me/fejikso</a>.
+      </p>
+      <button id="about-close" type="button" class="secondary">Close</button>
+    </aside>
+
+    <template id="tab-item-template">
+      <div class="tab-item" role="group">
+        <label class="tab-checkbox">
+          <input type="checkbox" class="tab-toggle" aria-label="Select tab to close" />
+        </label>
+        <button type="button" class="tab-title"></button>
+      </div>
+    </template>
+
+    <script src="popup.js" type="module"></script>
+  </body>
+</html>
+
