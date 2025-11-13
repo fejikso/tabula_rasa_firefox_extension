@@ -21,6 +21,15 @@ function isValidSortMode(mode) {
   return mode === "window" || mode === "recent" || mode === "oldest";
 }
 
+function focusFirstTabItem() {
+  const firstItem = tabContainer.querySelector(".tab-item");
+  if (firstItem) {
+    firstItem.focus();
+    return true;
+  }
+  return false;
+}
+
 async function restoreSortMode() {
   try {
     const stored = await browser.storage.local.get(SORT_MODE_KEY);
@@ -124,6 +133,14 @@ function renderTabs(tabs) {
     requestAnimationFrame(() => {
       targetItem?.focus();
     });
+  } else if (tabContainer.childElementCount === 0) {
+    requestAnimationFrame(() => {
+      if (document.hasFocus()) {
+        if (!focusFirstTabItem()) {
+          togglePinnedButton?.focus();
+        }
+      }
+    });
   }
 }
 
@@ -170,6 +187,11 @@ async function closeSelectedTabs() {
 
   closeButton.textContent = "Close selected tabs";
   closeButton.disabled = selectedTabIds.size === 0;
+  requestAnimationFrame(() => {
+    if (!focusFirstTabItem()) {
+      togglePinnedButton?.focus();
+    }
+  });
 }
 
 closeButton.addEventListener("click", closeSelectedTabs);

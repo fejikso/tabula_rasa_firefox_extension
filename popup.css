@@ -38,7 +38,7 @@ body.layout-full {
   max-height: none;
   min-height: 100vh;
   padding: clamp(24px, 4vw, 48px);
-  gap: 24px;
+  gap: clamp(16px, 3vw, 28px);
 }
 
 body.layout-full header,
@@ -50,7 +50,7 @@ body.layout-full .about {
 
 body.layout-full main {
   overflow: visible;
-  padding-top: 88px;
+  padding-top: clamp(40px, 6vw, 72px);
 }
 
 body.layout-full footer {
@@ -90,6 +90,19 @@ header {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand .logo {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
 }
 
 h1 {
@@ -133,7 +146,7 @@ body.layout-full .sort-controls {
   }
 
   body.layout-full main {
-    padding-top: 72px;
+    padding-top: 48px;
   }
 
   body.layout-full footer {
