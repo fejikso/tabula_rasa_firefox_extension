@@ -8,10 +8,36 @@ const aboutCloseButton = document.getElementById("about-close");
 const sortWindowButton = document.getElementById("sort-window");
 const sortRecentButton = document.getElementById("sort-recent");
 const sortOldestButton = document.getElementById("sort-oldest");
+const expandButton = document.getElementById("expand-button");
 
 const selectedTabIds = new Set();
 let tabCache = [];
 let sortMode = "window";
+const SORT_MODE_KEY = "tabulaRasa.sortMode";
+
+function isValidSortMode(mode) {
+  return mode === "window" || mode === "recent" || mode === "oldest";
+}
+
+async function restoreSortMode() {
+  try {
+    const stored = await browser.storage.local.get(SORT_MODE_KEY);
+    const savedMode = stored?.[SORT_MODE_KEY];
+    if (isValidSortMode(savedMode)) {
+      sortMode = savedMode;
+    }
+  } catch (error) {
+    console.error("Failed to restore sort mode preference:", error);
+  }
+}
+
+async function persistSortMode(mode) {
+  try {
+    await browser.storage.local.set({ [SORT_MODE_KEY]: mode });
+  } catch (error) {
+    console.error("Failed to save sort mode preference:", error);
+  }
+}
 
 function updateCloseButtonState() {
   closeButton.disabled = selectedTabIds.size === 0;
@@ -114,10 +140,6 @@ async function closeSelectedTabs() {
 
 closeButton.addEventListener("click", closeSelectedTabs);
 
-loadTabs().catch((error) => {
-  console.error("Unexpected error initializing popup:", error);
-});
-
 async function focusTab(tabId, windowId) {
   try {
     await browser.tabs.update(tabId, { active: true });
@@ -178,6 +200,9 @@ function setSortMode(mode) {
   sortMode = mode;
   updateSortButtonState();
   renderTabs(getSortedTabs());
+  persistSortMode(sortMode).catch((error) => {
+    console.error("Unexpected error persisting sort mode:", error);
+  });
 }
 
 if (sortWindowButton && sortRecentButton && sortOldestButton) {
@@ -185,4 +210,26 @@ if (sortWindowButton && sortRecentButton && sortOldestButton) {
   sortRecentButton.addEventListener("click", () => setSortMode("recent"));
   sortOldestButton.addEventListener("click", () => setSortMode("oldest"));
 }
+
+if (expandButton) {
+  expandButton.addEventListener("click", async () => {
+    try {
+      const fullViewUrl = browser.runtime.getURL("full.html");
+      await browser.tabs.create({ url: fullViewUrl });
+      window.close();
+    } catch (error) {
+      console.error("Failed to open full view:", error);
+    }
+  });
+}
+
+async function init() {
+  await restoreSortMode();
+  updateSortButtonState();
+  await loadTabs();
+}
+
+init().catch((error) => {
+  console.error("Unexpected error initializing popup:", error);
+});
 

@@ -33,10 +33,63 @@ body {
   gap: 16px;
 }
 
+body.layout-full {
+  max-width: none;
+  max-height: none;
+  min-height: 100vh;
+  padding: clamp(24px, 4vw, 48px);
+  gap: 24px;
+}
+
+body.layout-full header,
+body.layout-full main,
+body.layout-full .about {
+  width: min(960px, 100%);
+  margin-inline: auto;
+}
+
+body.layout-full main {
+  overflow: visible;
+  padding-top: 88px;
+}
+
+body.layout-full footer {
+  position: fixed;
+  top: clamp(24px, 4vw, 48px);
+  right: clamp(24px, 4vw, 48px);
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  margin: 0;
+  width: auto;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  border-radius: 999px;
+  padding: 6px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
+  backdrop-filter: blur(6px);
+}
+
+body.layout-full footer button {
+  min-width: 0;
+  width: auto;
+  padding-inline: 18px;
+}
+
+body.layout-full #expand-button {
+  display: none;
+}
+
 header {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
+}
+
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 h1 {
@@ -67,6 +120,30 @@ main {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
   padding-bottom: 2px;
+}
+
+body.layout-full .sort-controls {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+@media (max-width: 720px) {
+  body.layout-full {
+    padding: 24px;
+    gap: 16px;
+  }
+
+  body.layout-full main {
+    padding-top: 72px;
+  }
+
+  body.layout-full footer {
+    top: 16px;
+    right: 16px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 8px;
+  }
 }
 
 #tab-container {
@@ -181,6 +258,35 @@ button:disabled {
 .sort-button:disabled {
   background: rgba(0, 0, 0, 0.04);
   color: rgba(0, 0, 0, 0.4);
+}
+
+.icon-button {
+  min-width: auto;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.icon-button:hover {
+  background: rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+
+.icon-button:focus-visible {
+  outline: 3px solid rgba(0, 96, 223, 0.35);
+  outline-offset: 2px;
+}
+
+.icon-button svg {
+  display: block;
 }
 
 .secondary {
