@@ -6,7 +6,7 @@
   "action": {
     "default_title": "Tabula Rasa",
     "default_popup": "popup.html",
-    "default_icon": "icon.svg"
+    "default_icon": "ideas/Tabs2.png"
   },
   "icons": {
     "16": "icon.svg",
@@ -17,6 +17,14 @@
   "permissions": [
     "tabs",
     "storage"
-  ]
+  ],
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "F4"
+      },
+      "description": "Open Tabula Rasa"
+    }
+  }
 }
 

@@ -82,7 +82,7 @@ body.layout-full #expand-button {
 header {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 12px;
 }
 
 .header-row {
@@ -105,6 +105,41 @@ header {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
 }
 
+.search-field {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.02);
+  transition: border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;
+}
+
+.search-field svg {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.search-field input {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 0;
+  width: 100%;
+}
+
+.search-field input::placeholder {
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.search-field:focus-within {
+  border-color: rgba(0, 96, 223, 0.35);
+  background: rgba(0, 96, 223, 0.08);
+  box-shadow: 0 0 0 2px rgba(0, 96, 223, 0.12);
+}
+
 h1 {
   font-size: 18px;
   font-weight: 600;
@@ -117,6 +152,17 @@ p {
 
 .muted {
   color: var(--muted);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
 }
 
 main {

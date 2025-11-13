@@ -10,12 +10,14 @@ const sortRecentButton = document.getElementById("sort-recent");
 const sortOldestButton = document.getElementById("sort-oldest");
 const expandButton = document.getElementById("expand-button");
 const togglePinnedButton = document.getElementById("toggle-pinned");
+const searchInput = document.getElementById("search-tabs");
 
 const selectedTabIds = new Set();
 let tabCache = [];
 let sortMode = "window";
 const SORT_MODE_KEY = "tabulaRasa.sortMode";
 let hidePinned = true;
+let searchQuery = "";
 
 function getActiveTabItem() {
   const activeElement = document.activeElement;
@@ -70,6 +72,13 @@ function updateCloseButtonState() {
 function toggleEmptyState() {
   const hasTabs = tabContainer.childElementCount > 0;
   emptyState.classList.toggle("hidden", hasTabs);
+  if (!hasTabs) {
+    emptyState.textContent = searchQuery.trim()
+      ? "No tabs match your search."
+      : "No tabs to show.";
+  } else {
+    emptyState.textContent = "No tabs to show.";
+  }
 }
 
 function updatePinnedToggleState() {
@@ -105,6 +114,7 @@ function renderTabs(tabs) {
     document.activeElement?.closest(".tab-item")?.dataset.tabId ?? null;
   let itemToRefocus = null;
   let firstItem = null;
+  const searchHasFocus = document.activeElement === searchInput;
 
   tabContainer.innerHTML = "";
   tabs.forEach((tab) => {
@@ -137,12 +147,19 @@ function renderTabs(tabs) {
 
   toggleEmptyState();
 
+  if (searchHasFocus) {
+    return;
+  }
+
   const targetItem = itemToRefocus ?? firstItem;
   if (targetItem) {
     requestAnimationFrame(() => {
       targetItem?.focus();
     });
-  } else if (tabContainer.childElementCount === 0) {
+    return;
+  }
+
+  if (tabContainer.childElementCount === 0) {
     requestAnimationFrame(() => {
       if (document.hasFocus()) {
         if (!focusFirstTabItem()) {
@@ -260,10 +277,16 @@ function getSortedTabs() {
 
 function getVisibleTabs() {
   const sorted = getSortedTabs();
-  if (!hidePinned) {
-    return sorted;
+  const filteredByPin = hidePinned ? sorted.filter((tab) => !tab.pinned) : sorted;
+  const query = searchQuery.trim().toLowerCase();
+  if (!query) {
+    return filteredByPin;
   }
-  return sorted.filter((tab) => !tab.pinned);
+  return filteredByPin.filter((tab) => {
+    const title = tab.title?.toLowerCase() ?? "";
+    const url = tab.url?.toLowerCase() ?? "";
+    return title.includes(query) || url.includes(query);
+  });
 }
 
 function setSortMode(mode) {
@@ -293,6 +316,13 @@ if (togglePinnedButton) {
   updatePinnedToggleState();
 }
 
+if (searchInput) {
+  searchInput.addEventListener("input", () => {
+    searchQuery = searchInput.value ?? "";
+    renderTabs(getVisibleTabs());
+  });
+}
+
 if (expandButton) {
   expandButton.addEventListener("click", async () => {
     try {
@@ -317,6 +347,22 @@ init().catch((error) => {
 
 function handleGlobalKeydown(event) {
   const isModifier = event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
+  const activeElement = document.activeElement;
+  const tagName = activeElement?.tagName?.toLowerCase() ?? "";
+  const isEditableTarget =
+    activeElement?.isContentEditable ||
+    tagName === "input" ||
+    tagName === "textarea" ||
+    tagName === "select";
+
+  if (!isModifier && (event.key === "s" || event.key === "S")) {
+    if (!isEditableTarget && searchInput) {
+      event.preventDefault();
+      searchInput.focus();
+      searchInput.select();
+    }
+    return;
+  }
 
   if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
     if (!closeButton.disabled) {
