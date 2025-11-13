@@ -75,6 +75,14 @@ body.layout-full footer button {
   padding-inline: 18px;
 }
 
+body.layout-full .footer-secondary {
+  gap: 10px;
+}
+
+body.layout-full .footer-secondary button {
+  flex: 0 0 auto;
+}
+
 body.layout-full #expand-button {
   display: none;
 }
@@ -272,6 +280,16 @@ footer {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.footer-secondary {
+  display: flex;
+  gap: 8px;
+}
+
+.footer-secondary button {
+  min-width: 0;
+  flex: 1;
 }
 
 button {

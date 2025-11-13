@@ -2,15 +2,21 @@ const tabContainer = document.getElementById("tab-container");
 const emptyState = document.getElementById("empty-state");
 const closeButton = document.getElementById("close-selected");
 const tabTemplate = document.getElementById("tab-item-template");
-const aboutButton = document.getElementById("about-button");
-const aboutPanel = document.getElementById("about-panel");
-const aboutCloseButton = document.getElementById("about-close");
+const hotkeysButton = document.getElementById("hotkeys-button");
+const hotkeysPanel = document.getElementById("hotkeys-panel");
+const hotkeysCloseButton = document.getElementById("hotkeys-close");
+const tipButton = document.getElementById("tip-button");
+const tipPanel = document.getElementById("tip-panel");
+const tipCloseButton = document.getElementById("tip-close");
 const sortWindowButton = document.getElementById("sort-window");
 const sortRecentButton = document.getElementById("sort-recent");
 const sortOldestButton = document.getElementById("sort-oldest");
 const expandButton = document.getElementById("expand-button");
 const togglePinnedButton = document.getElementById("toggle-pinned");
 const searchInput = document.getElementById("search-tabs");
+const pathName = window.location.pathname || "";
+const isPopupView = pathName.endsWith("/popup.html") || pathName.endsWith("popup.html");
+const isFullView = pathName.endsWith("/full.html") || pathName.endsWith("full.html");
 
 const selectedTabIds = new Set();
 let tabCache = [];
@@ -233,27 +239,28 @@ async function focusTab(tabId, windowId) {
   }
 }
 
-function toggleAboutPanel(show) {
-  if (!aboutPanel) {
+function setupPanel(button, panel, closeButton) {
+  if (!button || !panel || !closeButton) {
     return;
   }
-
-  aboutPanel.classList.toggle("hidden", !show);
-  if (show) {
-    aboutPanel.focus();
-  }
-}
-
-if (aboutButton && aboutCloseButton) {
-  aboutButton.addEventListener("click", () => toggleAboutPanel(true));
-  aboutCloseButton.addEventListener("click", () => toggleAboutPanel(false));
-
-  aboutPanel?.addEventListener("keydown", (event) => {
+  const togglePanel = (show) => {
+    panel.classList.toggle("hidden", !show);
+    panel.setAttribute("aria-hidden", String(!show));
+    if (show) {
+      panel.focus();
+    }
+  };
+  button.addEventListener("click", () => togglePanel(true));
+  closeButton.addEventListener("click", () => togglePanel(false));
+  panel.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
-      toggleAboutPanel(false);
+      togglePanel(false);
     }
   });
 }
+
+setupPanel(hotkeysButton, hotkeysPanel, hotkeysCloseButton);
+setupPanel(tipButton, tipPanel, tipCloseButton);
 
 function updateSortButtonState() {
   if (!sortWindowButton || !sortRecentButton || !sortOldestButton) {
@@ -323,15 +330,34 @@ if (searchInput) {
   });
 }
 
-if (expandButton) {
-  expandButton.addEventListener("click", async () => {
-    try {
-      const fullViewUrl = browser.runtime.getURL("full.html");
-      await browser.tabs.create({ url: fullViewUrl });
+async function openFullView() {
+  try {
+    const fullViewUrl = browser.runtime.getURL("full.html");
+    await browser.tabs.create({ url: fullViewUrl });
+    window.close();
+  } catch (error) {
+    console.error("Failed to open full view:", error);
+  }
+}
+
+async function closeFullViewTab() {
+  try {
+    const tab = await browser.tabs.getCurrent();
+    if (tab?.id) {
+      await browser.tabs.remove(tab.id);
+    } else {
       window.close();
-    } catch (error) {
-      console.error("Failed to open full view:", error);
     }
+  } catch (error) {
+    console.error("Failed to close full view:", error);
+  }
+}
+
+if (expandButton) {
+  expandButton.addEventListener("click", () => {
+    openFullView().catch((error) => {
+      console.error("Unexpected error opening full view:", error);
+    });
   });
 }
 
@@ -354,6 +380,26 @@ function handleGlobalKeydown(event) {
     tagName === "input" ||
     tagName === "textarea" ||
     tagName === "select";
+
+  if (!isModifier && (event.key === "f" || event.key === "F")) {
+    if (!isEditableTarget && isPopupView) {
+      event.preventDefault();
+      openFullView().catch((error) => {
+        console.error("Unexpected error opening full view with hotkey:", error);
+      });
+    }
+    return;
+  }
+
+  if (!isModifier && (event.key === "q" || event.key === "Q")) {
+    if (!isEditableTarget && isFullView) {
+      event.preventDefault();
+      closeFullViewTab().catch((error) => {
+        console.error("Unexpected error closing full view with hotkey:", error);
+      });
+    }
+    return;
+  }
 
   if (!isModifier && (event.key === "s" || event.key === "S")) {
     if (!isEditableTarget && searchInput) {

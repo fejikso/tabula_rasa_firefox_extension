@@ -77,18 +77,45 @@
     </main>
     <footer>
       <button id="close-selected" type="button" disabled>Close selected tabs</button>
-      <button id="about-button" type="button" class="secondary">About</button>
+      <div class="footer-secondary">
+        <button id="hotkeys-button" type="button" class="secondary">Hotkeys</button>
+        <button id="tip-button" type="button" class="secondary">Tip</button>
+      </div>
     </footer>
 
     <aside
-      id="about-panel"
+      id="hotkeys-panel"
       class="about hidden"
       role="dialog"
       aria-modal="false"
-      aria-label="About Tabula Rasa"
+      aria-label="Keyboard shortcuts"
       tabindex="-1"
+      aria-hidden="true"
     >
-      <p class="about-title">Created by Fejikso.</p>
+      <p class="about-title">Keyboard shortcuts</p>
+      <ul class="about-list">
+        <li><kbd>Space</kbd> toggle the current tab selection.</li>
+        <li><kbd>Ctrl</kbd>+<kbd>Enter</kbd> (or <kbd>⌘</kbd>+<kbd>Enter</kbd>) closes selected tabs.</li>
+        <li><kbd>J</kbd> moves to the tab below, <kbd>K</kbd> moves to the one above.</li>
+        <li><kbd>S</kbd> focuses the search box.</li>
+        <li><kbd>F</kbd> opens the full-page view (popup only).</li>
+        <li><kbd>Q</kbd> closes the full-page view tab.</li>
+        <li><kbd>F4</kbd> opens Tabula Rasa from any page.</li>
+      </ul>
+      <p class="about-copy">Use the Hide pinned toggle to reveal pinned tabs when needed.</p>
+      <button id="hotkeys-close" type="button" class="secondary">Close</button>
+    </aside>
+
+    <aside
+      id="tip-panel"
+      class="about hidden"
+      role="dialog"
+      aria-modal="false"
+      aria-label="Tip the author"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <p class="about-title">Created by Fejikso</p>
       <p class="about-copy">
         This tool is provided as-is. The creator is not responsible for any damage the software may cause.
       </p>
@@ -96,16 +123,7 @@
         Enjoying Tabula Rasa? Consider leaving a tip for the developer at
         <a href="https://paypal.me/fejikso" target="_blank" rel="noopener noreferrer">paypal.me/fejikso</a>.
       </p>
-      <p class="about-copy">
-        Keyboard shortcuts help you move quickly:
-      </p>
-      <ul class="about-list">
-        <li><kbd>Space</kbd> toggle the current tab selection.</li>
-        <li><kbd>Ctrl</kbd>+<kbd>Enter</kbd> (or <kbd>⌘</kbd>+<kbd>Enter</kbd>) closes selected tabs.</li>
-        <li><kbd>J</kbd> moves to the tab above, <kbd>K</kbd> moves to the one below.</li>
-      </ul>
-      <p class="about-copy">Use the Hide pinned toggle to reveal pinned tabs when needed.</p>
-      <button id="about-close" type="button" class="secondary">Close</button>
+      <button id="tip-close" type="button" class="secondary">Close</button>
     </aside>
 
     <template id="tab-item-template">
