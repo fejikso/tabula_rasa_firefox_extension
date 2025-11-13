@@ -17,6 +17,15 @@ let sortMode = "window";
 const SORT_MODE_KEY = "tabulaRasa.sortMode";
 let hidePinned = true;
 
+function getActiveTabItem() {
+  const activeElement = document.activeElement;
+  const activeItem = activeElement?.closest(".tab-item");
+  if (activeItem) {
+    return activeItem;
+  }
+  return tabContainer.querySelector(".tab-item");
+}
+
 function isValidSortMode(mode) {
   return mode === "window" || mode === "recent" || mode === "oldest";
 }
@@ -317,12 +326,16 @@ function handleGlobalKeydown(event) {
     return;
   }
 
-  const activeElement = document.activeElement;
-  if (!activeElement) {
-    return;
-  }
-  const activeItem = activeElement.closest(".tab-item");
+  const activeItem = getActiveTabItem();
   if (!activeItem) {
+    if (
+      (event.key === "j" || event.key === "J" || event.key === "k" || event.key === "K") &&
+      !(event.altKey || event.ctrlKey || event.metaKey)
+    ) {
+      if (focusFirstTabItem()) {
+        event.preventDefault();
+      }
+    }
     return;
   }
 
