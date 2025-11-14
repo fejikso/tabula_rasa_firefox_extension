@@ -68,9 +68,9 @@
         >
           Hide pinned
         </button>
-        <button id="sort-window" type="button" class="sort-button active">Window order</button>
-        <button id="sort-recent" type="button" class="sort-button">Recent first</button>
-        <button id="sort-oldest" type="button" class="sort-button">Oldest first</button>
+        <button id="sort-window" type="button" class="sort-button active">1 · Window order</button>
+        <button id="sort-recent" type="button" class="sort-button">2 · Recent first</button>
+        <button id="sort-oldest" type="button" class="sort-button">3 · Oldest first</button>
       </div>
       <section id="tab-container" aria-live="polite"></section>
       <p id="empty-state" class="muted hidden">No tabs to show.</p>
@@ -103,7 +103,14 @@
         <li><kbd>F4</kbd> opens Tabula Rasa from any page.</li>
       </ul>
       <p class="about-copy">Use the Hide pinned toggle to reveal pinned tabs when needed.</p>
-      <button id="hotkeys-close" type="button" class="secondary">Close</button>
+      <button
+        id="hotkeys-close"
+        type="button"
+        class="secondary circle-close"
+        aria-label="Close dialog"
+      >
+        &#11199;
+      </button>
     </aside>
 
     <aside
@@ -123,7 +130,14 @@
         Enjoying Tabula Rasa? Consider leaving a tip for the developer at
         <a href="https://paypal.me/fejikso" target="_blank" rel="noopener noreferrer">paypal.me/fejikso</a>.
       </p>
-      <button id="tip-close" type="button" class="secondary">Close</button>
+      <button
+        id="tip-close"
+        type="button"
+        class="secondary circle-close"
+        aria-label="Close dialog"
+      >
+        &#11199;
+      </button>
     </aside>
 
     <template id="tab-item-template">
@@ -135,6 +149,14 @@
           <button type="button" class="tab-title"></button>
           <span class="tab-url" aria-hidden="true"></span>
           <span class="tab-last-accessed" aria-hidden="true"></span>
+          <button
+            type="button"
+            class="tab-close"
+            aria-label="Close this tab"
+            title="Close this tab (Ctrl/Cmd + Click or X)"
+          >
+            &#x274C;
+          </button>
         </div>
       </div>
     </template>

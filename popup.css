@@ -273,8 +273,8 @@ body.layout-full .sort-controls {
 
 .tab-content {
   display: grid;
-  grid-template-columns: minmax(0, 3fr);
-  gap: 2px;
+  grid-template-columns: minmax(0, 3fr) auto;
+  gap: 6px;
   min-width: 0;
   align-items: center;
 }
@@ -289,8 +289,38 @@ body.layout-full .sort-controls {
   min-width: 0;
 }
 
+.tab-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 50%;
+  border: none;
+  background: rgba(220, 20, 60, 0.12);
+  color: #c1002b;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 120ms ease, transform 120ms ease;
+}
+
+.tab-close:hover {
+  background: rgba(220, 20, 60, 0.22);
+}
+
+.tab-close:focus-visible {
+  outline: 3px solid rgba(220, 20, 60, 0.35);
+  outline-offset: 2px;
+}
+
+.tab-close:active {
+  transform: translateY(1px);
+}
+
 body.layout-full .tab-content {
-  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) minmax(0, 1.2fr);
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) minmax(0, 1.2fr) auto;
   gap: 16px;
 }
 
@@ -317,6 +347,12 @@ body.layout-full .tab-last-accessed {
   text-align: right;
   color: var(--muted);
   white-space: nowrap;
+}
+
+body.layout-full .tab-close {
+  width: 26px;
+  height: 26px;
+  font-size: 16px;
 }
 
 .tab-title:focus-visible,
@@ -517,6 +553,29 @@ body.layout-full .about:not(.hidden) {
   align-self: flex-start;
   padding-inline: 14px;
 }
+
+.circle-close {
+  padding: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+}
+
+.circle-close.secondary {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.circle-close:hover {
+  text-decoration: none;
+}
+
 
 .about a {
   color: var(--accent);

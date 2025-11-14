@@ -56,6 +56,18 @@ function formatLastAccessed(timestamp) {
   }
 }
 
+async function closeSingleTabImmediate(tabId) {
+  if (typeof tabId !== "number") {
+    return;
+  }
+  try {
+    await browser.tabs.remove(tabId);
+    removeClosedTabs([tabId]);
+  } catch (error) {
+    console.error(`Failed to close tab ${tabId}:`, error);
+  }
+}
+
 function getActiveTabItem() {
   const activeElement = document.activeElement;
   const activeItem = activeElement?.closest(".tab-item");
@@ -171,14 +183,23 @@ function renderTabs(tabs) {
     checkbox.checked = selectedTabIds.has(tab.id);
 
     checkbox.addEventListener("change", () => handleCheckboxChange(tab.id, checkbox));
-    titleButton.addEventListener("click", () => focusTab(tab.id, tab.windowId));
+    titleButton.addEventListener("click", (event) => {
+      if (event.ctrlKey || event.metaKey) {
+        event.preventDefault();
+        closeSingleTabImmediate(tab.id).catch((error) => {
+          console.error("Unexpected error closing tab with modifier click:", error);
+        });
+        return;
+      }
+      focusTab(tab.id, tab.windowId);
+    });
 
     if (urlSpan) {
       const urlText = tab.url ?? "";
       const displayUrl = truncateUrl(urlText) || "URL unavailable";
       urlSpan.textContent = displayUrl;
       urlSpan.title = urlText || "URL unavailable";
-      urlSpan.classList.toggle("hidden", !isFullView && !urlText);
+      urlSpan.classList.toggle("hidden", !isFullView || !urlText);
     }
 
     if (lastAccessedSpan) {
@@ -187,6 +208,26 @@ function renderTabs(tabs) {
       lastAccessedSpan.title = formatted;
       lastAccessedSpan.classList.toggle("hidden", !isFullView);
     }
+
+    const handleModifierClick = (event) => {
+      if (event.ctrlKey || event.metaKey) {
+        event.preventDefault();
+        closeSingleTabImmediate(tab.id).catch((error) => {
+          console.error("Unexpected error closing tab with modifier click:", error);
+        });
+      }
+    };
+
+    item.addEventListener("click", handleModifierClick);
+    urlSpan?.addEventListener("click", handleModifierClick);
+    lastAccessedSpan?.addEventListener("click", handleModifierClick);
+    const closeButton = item.querySelector(".tab-close");
+    closeButton?.addEventListener("click", (event) => {
+      event.preventDefault();
+      closeSingleTabImmediate(tab.id).catch((error) => {
+        console.error("Unexpected error closing tab via close button:", error);
+      });
+    });
 
     tabContainer.appendChild(clone);
 
@@ -354,6 +395,11 @@ function setSortMode(mode) {
   persistSortMode(sortMode).catch((error) => {
     console.error("Unexpected error persisting sort mode:", error);
   });
+  requestAnimationFrame(() => {
+    if (!searchInput || document.activeElement !== searchInput) {
+      focusFirstTabItem();
+    }
+  });
 }
 
 if (sortWindowButton && sortRecentButton && sortOldestButton) {
@@ -456,6 +502,35 @@ function handleGlobalKeydown(event) {
       searchInput.select();
     }
     return;
+  }
+
+  if (!isModifier && !isEditableTarget) {
+    if (event.key === "1") {
+      event.preventDefault();
+      setSortMode("window");
+      return;
+    }
+    if (event.key === "2") {
+      event.preventDefault();
+      setSortMode("recent");
+      return;
+    }
+    if (event.key === "3") {
+      event.preventDefault();
+      setSortMode("oldest");
+      return;
+    }
+    if (event.key === "x" || event.key === "X") {
+      const activeItem = getActiveTabItem();
+      if (activeItem) {
+        event.preventDefault();
+        const tabId = Number(activeItem.dataset.tabId);
+        closeSingleTabImmediate(tabId).catch((error) => {
+          console.error("Unexpected error closing tab with hotkey:", error);
+        });
+      }
+      return;
+    }
   }
 
   if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
