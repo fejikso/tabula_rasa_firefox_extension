@@ -69,21 +69,23 @@
       </div>
     </header>
     <main>
-      <div class="sort-controls" role="group" aria-label="Sort tabs">
-        <button
-          id="toggle-pinned"
-          type="button"
-          class="sort-button toggle-button active"
-          aria-pressed="true"
-        >
-          Hide pinned
-        </button>
-        <button id="sort-window" type="button" class="sort-button active">1 · Current order</button>
-        <button id="sort-recent" type="button" class="sort-button">2 · Recent first</button>
-        <button id="sort-oldest" type="button" class="sort-button">3 · Oldest first</button>
-      </div>
-      <div class="selection-controls">
-        <button id="select-visible" type="button" class="selection-button">Select all</button>
+      <div class="controls-bar">
+        <div class="sort-controls" role="group" aria-label="Sort tabs">
+          <button
+            id="toggle-pinned"
+            type="button"
+            class="sort-button toggle-button active"
+            aria-pressed="true"
+          >
+            Hide pinned
+          </button>
+          <button id="sort-window" type="button" class="sort-button active">1 · Browser order</button>
+          <button id="sort-recent" type="button" class="sort-button">2 · Recent first</button>
+          <button id="sort-oldest" type="button" class="sort-button">3 · Oldest first</button>
+        </div>
+        <div class="selection-controls">
+          <button id="select-visible" type="button" class="selection-button">Select all</button>
+        </div>
       </div>
       <section id="tab-container" aria-live="polite"></section>
       <p id="empty-state" class="muted hidden">No tabs to show.</p>

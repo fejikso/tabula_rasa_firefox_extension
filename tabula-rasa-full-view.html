@@ -7,69 +7,91 @@
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body class="layout-full">
-    <header>
-      <div class="header-row">
-        <div class="brand">
-          <img src="icon.svg" alt="" class="logo" />
-          <h1>Tabula Rasa</h1>
+    <div class="full-sticky-top">
+      <header>
+        <div class="header-row">
+          <div class="brand">
+            <img src="icon.svg" alt="" class="logo" />
+            <h1>Tabula Rasa</h1>
+          </div>
+          <button
+            id="expand-button"
+            type="button"
+            class="icon-button"
+            aria-label="Open full page view"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              role="presentation"
+              aria-hidden="true"
+            >
+              <path
+                d="M10 2h4v4h-1V3.707L7.354 9.354l-.708-.708L12.293 3H10V2zM3 5h4V4H2v5h1V5zM3 11h4v-1H2v4h5v-1H3v-2z"
+                fill="currentColor"
+              />
+            </svg>
+          </button>
         </div>
-        <button
-          id="expand-button"
-          type="button"
-          class="icon-button"
-          aria-label="Open full page view"
-        >
+        <div class="search-wrapper">
           <svg
             width="16"
             height="16"
             viewBox="0 0 16 16"
-            role="presentation"
             aria-hidden="true"
+            role="presentation"
           >
             <path
-              d="M10 2h4v4h-1V3.707L7.354 9.354l-.708-.708L12.293 3H10V2zM3 5h4V4H2v5h1V5zM3 11h4v-1H2v4h5v-1H3v-2z"
+              d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242.656a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"
               fill="currentColor"
             />
           </svg>
-        </button>
-      </div>      
-      <div class="search-wrapper">
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
-          aria-hidden="true"
-          role="presentation"
-        >
-          <path
-            d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242.656a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"
-            fill="currentColor"
-          />
-        </svg>
-        <label class="search-field">
-          <span class="sr-only">Filter tabs</span>
-          <input
-            id="search-tabs"
-            type="search"
-            placeholder="Search tabs (press S)"
-            autocomplete="off"
-            spellcheck="false"
-            inputmode="search"
-          />
-        </label>
-        <button
-          id="search-clear"
-          type="button"
-          class="search-clear"
-          aria-label="Clear search"
-          title="Clear search (Esc)"
-        >
-          &#x2BBE;
-        </button>
+          <label class="search-field">
+            <span class="sr-only">Filter tabs</span>
+            <input
+              id="search-tabs"
+              type="search"
+              placeholder="Search tabs (press S)"
+              autocomplete="off"
+              spellcheck="false"
+              inputmode="search"
+            />
+          </label>
+          <button
+            id="search-clear"
+            type="button"
+            class="search-clear"
+            aria-label="Clear search"
+            title="Clear search (Esc)"
+          >
+            &#x2BBE;
+          </button>
+        </div>
+      </header>
+      <div class="controls-bar">
+        <div class="sort-controls" role="group" aria-label="Sort tabs">
+          <button
+            id="toggle-pinned"
+            type="button"
+            class="sort-button toggle-button active"
+            aria-pressed="true"
+          >
+            Hide pinned
+          </button>
+          <button id="sort-window" type="button" class="sort-button active">1 · Browser order</button>
+          <button id="sort-recent" type="button" class="sort-button">2 · Recent first</button>
+          <button id="sort-oldest" type="button" class="sort-button">3 · Oldest first</button>
+        </div>
+        <div class="selection-controls">
+          <button id="select-visible" type="button" class="selection-button">Select all</button>
+        </div>
       </div>
-    </header>
+    </div>
     <main>
-      <div class="sort-controls" role="group" aria-label="Sort tabs">
+      <section id="tab-container" aria-live="polite"></section>
+      <p id="empty-state" class="muted hidden">No tabs to show.</p>
+    </main>
         <button
           id="toggle-pinned"
           type="button"
@@ -78,9 +100,12 @@
         >
           Hide pinned
         </button>
-        <button id="sort-window" type="button" class="sort-button active">1 · Window order</button>
+        <button id="sort-window" type="button" class="sort-button active">1 · Browser order</button>
         <button id="sort-recent" type="button" class="sort-button">2 · Recent first</button>
         <button id="sort-oldest" type="button" class="sort-button">3 · Oldest first</button>
+      </div>
+      <div class="selection-controls">
+        <button id="select-visible" type="button" class="selection-button">Select all</button>
       </div>
       <section id="tab-container" aria-live="polite"></section>
       <p id="empty-state" class="muted hidden">No tabs to show.</p>

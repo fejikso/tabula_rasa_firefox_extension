@@ -30,6 +30,8 @@ const LAUNCH_FULL_VIEW_KEY = "tabulaRasa.launchFullView";
 let hidePinned = true;
 let searchQuery = "";
 let launchFullViewByDefault = false;
+let activeTabIdFocusTarget = null;
+let shouldFocusActiveTab = false;
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
   dateStyle: "medium",
@@ -204,6 +206,7 @@ function renderTabs(tabs) {
     document.activeElement?.closest(".tab-item")?.dataset.tabId ?? null;
   let itemToRefocus = null;
   let firstItem = null;
+  let activeItemElement = null;
   const searchHasFocus = document.activeElement === searchInput;
 
   tabContainer.innerHTML = "";
@@ -284,20 +287,38 @@ function renderTabs(tabs) {
     if (activeTabId && String(tab.id) === activeTabId) {
       itemToRefocus = item;
     }
+    if (activeTabIdFocusTarget && tab.id === activeTabIdFocusTarget) {
+      activeItemElement = item;
+    }
   });
 
   toggleEmptyState();
   updateSelectVisibleButton(tabs);
 
-  if (searchHasFocus) {
+  if (searchHasFocus && !shouldFocusActiveTab) {
     return;
   }
 
-  const targetItem = itemToRefocus ?? firstItem;
+  let targetItem = itemToRefocus ?? firstItem;
+  let focusSearchAfter = false;
+  if (shouldFocusActiveTab && activeItemElement) {
+    targetItem = activeItemElement;
+    focusSearchAfter = true;
+  }
+
   if (targetItem) {
     requestAnimationFrame(() => {
-      targetItem?.focus();
+      if (focusSearchAfter) {
+        targetItem.scrollIntoView({ block: "center", inline: "nearest" });
+      }
+      targetItem.focus();
+      if (focusSearchAfter) {
+        requestAnimationFrame(() => {
+          searchInput?.focus({ preventScroll: true });
+        });
+      }
     });
+    shouldFocusActiveTab = false;
     return;
   }
 
@@ -315,6 +336,8 @@ function renderTabs(tabs) {
 async function loadTabs() {
   try {
     const tabs = await browser.tabs.query({ currentWindow: true });
+    activeTabIdFocusTarget = tabs.find((tab) => tab.active)?.id ?? null;
+    shouldFocusActiveTab = Boolean(activeTabIdFocusTarget);
     tabCache = tabs.map((tab) => ({
       id: tab.id,
       windowId: tab.windowId,

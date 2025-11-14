@@ -50,7 +50,27 @@ body.layout-full .about {
 
 body.layout-full main {
   overflow: visible;
-  padding-top: clamp(20px, 4vw, 40px);
+  padding-top: clamp(16px, 3vw, 32px);
+}
+
+body.layout-full .controls-bar {
+  position: static;
+  background: transparent;
+  padding-block: 0;
+}
+
+.full-sticky-top {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+body.layout-full .full-sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  background: var(--bg);
+  padding-block: clamp(12px, 2vw, 20px);
 }
 
 body.layout-full footer {
@@ -242,6 +262,17 @@ main {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+}
+
+.controls-bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-block: 4px;
+  background: var(--bg);
 }
 
 .sort-controls {
