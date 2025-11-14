@@ -53,6 +53,7 @@
             id="search-tabs"
             type="search"
             placeholder="Search. Press ENTER when done, ESC to clear"
+            title="Hotkey: press S to focus search"
             autocomplete="off"
             spellcheck="false"
             inputmode="search"
@@ -172,7 +173,10 @@
         While the search box has focus, letter shortcuts type into it. Press Enter once to move focus to the tab list so these hotkeys work.
       </p>
       <ul class="about-list">
-        <li><kbd>F8</kbd> opens Tabula Rasa from any page.</li>
+        <li>
+          <kbd id="launch-hotkey-display">F8</kbd>
+          opens Tabula Rasa from any page.
+        </li>
         <li><kbd>S</kbd> focuses the search box; <kbd>Esc</kbd> clears it.</li>
         <li><kbd>J</kbd> moves down the list, <kbd>K</kbd> moves up.</li>
         <li><kbd>Ctrl</kbd>+<kbd>J</kbd> (or <kbd>⌘</kbd>+<kbd>J</kbd>) jumps to the top; <kbd>Ctrl</kbd>+<kbd>K</kbd> (or <kbd>⌘</kbd>+<kbd>K</kbd>) jumps to the bottom.</li>
@@ -193,7 +197,7 @@
         <li><kbd>1</kbd>, <kbd>2</kbd>, <kbd>3</kbd> switch between window, recent, and oldest sorting.</li>
         <li><kbd>L</kbd> toggles between horizontal and vertical layouts.</li>
         <li><kbd>F</kbd> opens the full-page view (popup only).</li>
-        <li><kbd>Q</kbd> closes the full-page view tab.</li>
+        <li><kbd>Q</kbd> closes Tabula Rasa.</li>
       </ul>
       <p class="about-copy">Use the Hide pins toggle to reveal pinned tabs when needed.</p>
       <button

@@ -32,7 +32,7 @@ You can switch between them at any time; both share the same filters, selections
 
 | Shortcut | Action |
 | --- | --- |
-| **F8** | Launch Tabula Rasa from anywhere. |
+| **Launch hotkey** | Launch Tabula Rasa from anywhere (default F8; configurable in Options). |
 | **S** / **Esc** | Focus the search box / clear it. |
 | **Enter** | Open the focused tab. |
 | **Space** | Toggle the focused tab’s checkbox. |
@@ -49,7 +49,7 @@ You can switch between them at any time; both share the same filters, selections
 | **1 / 2 / 3** | Switch sorting: browser / recent / oldest. |
 | **L** | Toggle between horizontal and vertical full-view layouts. |
 | **F** | Open the full-page view (when in the popup). |
-| **Q** | Close the full-page view tab. |
+| **Q** | Close Tabula Rasa (popup or full view). |
 
 You can revisit these at any time via the **Hotkeys** button.
 

@@ -19,6 +19,7 @@ const selectVisibleButton = document.getElementById("select-visible");
 const defaultFullViewCheckbox = document.getElementById("default-full-view");
 const orientationToggle = document.getElementById("full-view-orientation");
 const tabCountElement = document.getElementById("tab-count");
+const launchHotkeyDisplay = document.getElementById("launch-hotkey-display");
 const pathName = window.location.pathname || "";
 const FULL_VIEW_FILE = "tabula-rasa-full-view.html";
 const isPopupView = pathName.endsWith("/popup.html") || pathName.endsWith("popup.html");
@@ -47,6 +48,7 @@ let focusSearchFirst = true;
 let confirmBeforeClose = true;
 let closePopupAfterOpen = true;
 let hidePinnedByDefault = true;
+let launchHotkey = "F8";
 let originalTabId = null;
 let originalTabIndex = null;
 
@@ -200,6 +202,7 @@ async function restoreSortMode() {
       CONFIRM_BEFORE_CLOSE_KEY,
       CLOSE_POPUP_AFTER_OPEN_KEY,
       HIDE_PINNED_BY_DEFAULT_KEY,
+      LAUNCH_HOTKEY_KEY,
     ]);
     const savedMode = stored?.[SORT_MODE_KEY];
     if (isValidSortMode(savedMode)) {
@@ -227,6 +230,11 @@ async function restoreSortMode() {
       hidePinnedByDefault = stored[HIDE_PINNED_BY_DEFAULT_KEY];
       hidePinned = hidePinnedByDefault;
     }
+    const storedHotkey = stored?.[LAUNCH_HOTKEY_KEY];
+    if (typeof storedHotkey === "string" && storedHotkey.trim()) {
+      launchHotkey = storedHotkey;
+    }
+    updateLaunchHotkeyDisplay();
     await loadOptions();
   } catch (error) {
     console.error("Failed to restore sort mode preference:", error);
@@ -278,6 +286,12 @@ function updateSearchClearVisibility() {
   const hasQuery = (searchInput?.value?.length ?? 0) > 0;
   searchClearButton.disabled = !hasQuery;
   searchClearButton.setAttribute("aria-disabled", String(!hasQuery));
+}
+
+function updateLaunchHotkeyDisplay() {
+  if (launchHotkeyDisplay && launchHotkey) {
+    launchHotkeyDisplay.textContent = launchHotkey;
+  }
 }
 
 function updateSelectVisibleButton(currentVisibleTabs) {
@@ -462,7 +476,7 @@ function renderTabs(tabs) {
   let focusSearchAfter = false;
   if (shouldFocusActiveTab && activeItemElement) {
     targetItem = activeItemElement;
-    focusSearchAfter = true;
+    focusSearchAfter = focusSearchFirst;
   }
 
   if (targetItem) {
@@ -471,9 +485,9 @@ function renderTabs(tabs) {
         targetItem.scrollIntoView({ block: "center", inline: "nearest" });
       }
       focusElement(targetItem, { preventScroll: isFullView });
-      if (focusSearchAfter) {
+      if (focusSearchAfter && focusSearchFirst && searchInput) {
         requestAnimationFrame(() => {
-          searchInput?.focus({ preventScroll: true });
+          searchInput.focus({ preventScroll: true });
         });
       }
     });
@@ -796,6 +810,8 @@ const OPTIONS_CONFIG = [
         await browser.storage.local.set({
           [LAUNCH_HOTKEY_KEY]: value,
         });
+        launchHotkey = value;
+        updateLaunchHotkeyDisplay();
       } catch (error) {
         console.error("Failed to update launch hotkey:", error);
       }
@@ -906,7 +922,9 @@ async function loadOptions() {
             hidePinnedByDefault = storedValue !== undefined ? storedValue : option.defaultValue;
           }
         } else if (option.type === "select" && option.id === "launch-hotkey") {
-          const hotkey = storedValue || option.defaultValue;
+        const hotkey = storedValue || option.defaultValue;
+        launchHotkey = hotkey;
+        updateLaunchHotkeyDisplay();
           browser.commands.update({
             name: "_execute_action",
             shortcut: hotkey,
@@ -1113,11 +1131,19 @@ function handleGlobalKeydown(event) {
   }
 
   if (!isModifier && (event.key === "q" || event.key === "Q")) {
-    if (!isEditableTarget && isFullView) {
+    if (!isEditableTarget) {
       event.preventDefault();
-      closeFullViewTab().catch((error) => {
-        console.error("Unexpected error closing full view with hotkey:", error);
-      });
+      if (isFullView) {
+        closeFullViewTab().catch((error) => {
+          console.error("Unexpected error closing full view with hotkey:", error);
+        });
+      } else if (isPopupView) {
+        try {
+          window.close();
+        } catch (error) {
+          console.error("Unexpected error closing popup with hotkey:", error);
+        }
+      }
     }
     return;
   }
