@@ -3,7 +3,7 @@
 Tabula Rasa provides a **fast, distraction-free environment** for reviewing, sorting, and closing open tabs in your current window. Designed for power users, it minimizes mouse interaction, letting you manage your tab clutter with just a few keystrokes.  
 The core value is **low-latency tab control**: search, switch, sort, and batch-close tabs instantly—all **using only the keyboard**, eliminating the need for mouse interaction.
 
-## **🚀 Full Keyboard Workflow Example**
+## **🚀 Full Keyboard Workflow Example 1**
 
 Follow this step-by-step example to experience the core value of Tabula Rasa—managing your tabs without touching the mouse.
 
@@ -15,6 +15,15 @@ Follow this step-by-step example to experience the core value of Tabula Rasa—m
 6. **Switch to Tab:** Find a tab you want to switch to and continue working on. While it's in focus, press **Enter**. Tabula Rasa will close, and your browser will immediately jump to that tab.  
 7. **Batch Close:** After relaunching, if you have selected tabs remaining, press **Ctrl/Cmd \+ Enter** to close all selected tabs at once.  
 8. **Exit:** Press **Q** to exit Tabula Rasa (works in both popup and full views).
+
+## **🚀 Full Keyboard Workflow Example 1**
+
+1. Launch the app (default key: F8) 
+1. Press **S** to focus on the search bar (if you're not there already)   
+2. Write some string to be searched
+4. Press **Enter** to go to the tab list.
+5. Select the tab you want (using **J/K** to navigate)  
+6. Press **Enter** for the browser to refocus to that tab. 
 
 ## **⌨️ Comprehensive Keyboard Shortcuts**
 
