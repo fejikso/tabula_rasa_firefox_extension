@@ -6,6 +6,8 @@ The core value is **low-latency tab control**: search, switch, sort, and batch-c
 
 <!-- markdownlint-disable-next-line MD033 -->
 <img src="media/screenshot_search.png" alt="Screenshot of Tabula Rasa popup filtering recipe tabs" width="400">
+<!-- markdownlint-disable-next-line MD033 -->
+<img src="media/screenshot_closing.png" alt="Screenshot of Tabula Rasa popup about to close multiple tabs" width="400">
 
 ## **🚀 Full Keyboard Workflow Example 1**
 
@@ -28,6 +30,7 @@ Follow this step-by-step example to experience the core value of Tabula Rasa—m
 4. Press **Enter** to go to the tab list.
 5. Select the tab you want (using **J/K** to navigate)
 6. Press **Enter** for the browser to refocus to that tab.
+
 
 ## **⌨️ Comprehensive Keyboard Shortcuts**
 
