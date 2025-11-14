@@ -1,7 +1,10 @@
-# **Tabula Rasa: Keyboard-First Tab Navigator and Manager**
+# **Tabula Rasa: Look ma, no mouse!**
 
-Tabula Rasa provides a **fast, distraction-free environment** for reviewing, sorting, and closing open tabs in your current window. Designed for power users, it minimizes mouse interaction, letting you manage your tab clutter with just a few keystrokes.  
+Tabula Rasa provides a fast way for navigating, searching, and closing open tabs in your current window. Designed for power users, it minimizes mouse interaction, letting you manage your tab clutter with just a few keystrokes.
+
 The core value is **low-latency tab control**: search, switch, sort, and batch-close tabs instantly—all **using only the keyboard**, eliminating the need for mouse interaction.
+
+![Screenshot of Tabula Rasa popup filtering recipe tabs](media/screenshot_search.png)
 
 ## **🚀 Full Keyboard Workflow Example 1**
 
@@ -66,6 +69,10 @@ Access the **Options** panel (press **O** or click the button) to configure pers
 ### **Advanced Hotkey Configuration**
 
 If the built-in hotkey options are insufficient, you can set a fully custom shortcut directly through Firefox’s Add-ons UI under **Keyboard Shortcuts**.
+
+## **📜 History**
+
+The name “Tabula Rasa” is a playful nod to browser **tabs** and the Latin phrase meaning “clean slate,” [tabula rasa](https://en.wiktionary.org/wiki/tabula_rasa). The project began as a quest for a better way to close lots of tabs quickly—wiping the slate clean—but during development it became clear the same keyboard-first interface was equally powerful for **searching** and **navigating** through every open tab. That broadened focus shaped the tool into the all-in-one tab triage and navigation experience it is today. 
 
 ## **❤️ Supporting the Author**
 

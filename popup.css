@@ -406,6 +406,11 @@ main {
   min-width: 0;
 }
 
+body.layout-full .sort-controls {
+  column-gap: 6px;
+  row-gap: 112px;
+}
+
 .ordering-group {
   display: flex;
   flex-direction: column;
