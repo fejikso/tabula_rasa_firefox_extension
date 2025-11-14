@@ -6,7 +6,7 @@ Streamline how you review, sort, and close Firefox tabs. Tabula Rasa presents a 
 
 ## Quick Start
 
-1. Click the Tabula Rasa toolbar icon (popup view) or press **F8** (full-page view).  
+1. Click the Tabula Rasa toolbar icon (popup view) or press **F8** (the default launch hotkey, which you can change in Options or customize further via the Advanced instructions below).  
 2. Filter tabs by typing in the search box – use **Esc** to clear the query.  
 3. Press **1 / 2 / 3** to switch between browser order, most recently used, or oldest tabs first.  
 4. Tick the tabs you want to close and hit **Ctrl/Cmd + Enter**, or click the ❌ next to any single tab to close it immediately.  
@@ -32,7 +32,7 @@ You can switch between them at any time; both share the same filters, selections
 
 | Shortcut | Action |
 | --- | --- |
-| **Launch hotkey** | Launch Tabula Rasa from anywhere (default F8; configurable in Options). |
+| **Launch hotkey** | Launch Tabula Rasa from anywhere (default F8; configurable in Options—see Advanced section for fully custom shortcuts). |
 | **S** / **Esc** | Focus the search box / clear it. |
 | **Enter** | Open the focused tab. |
 | **Space** | Toggle the focused tab’s checkbox. |

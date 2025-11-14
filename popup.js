@@ -49,8 +49,6 @@ let confirmBeforeClose = true;
 let closePopupAfterOpen = true;
 let hidePinnedByDefault = true;
 let launchHotkey = "F8";
-let originalTabId = null;
-let originalTabIndex = null;
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
   dateStyle: "medium",
@@ -349,7 +347,8 @@ function handleCheckboxChange(tabId, checkbox) {
 function updateTabCount() {
   if (tabCountElement) {
     const count = tabCache.length;
-    tabCountElement.textContent = `(${count})`;
+    tabCountElement.textContent = `(${count}) tabs`;
+    tabCountElement.setAttribute("aria-label", `${count} open tab${count === 1 ? "" : "s"}`);
   }
 }
 
@@ -513,14 +512,6 @@ async function loadTabs() {
     const tabs = await browser.tabs.query({ currentWindow: true });
     activeTabIdFocusTarget = tabs.find((tab) => tab.active)?.id ?? null;
     shouldFocusActiveTab = Boolean(activeTabIdFocusTarget);
-    
-    // Track original tab for 'z' hotkey
-    const activeTab = tabs.find((tab) => tab.active);
-    originalTabId = activeTabIdFocusTarget ?? activeTab?.id ?? tabs[0]?.id ?? null;
-    if (originalTabId !== null) {
-      const originalTab = tabs.find((tab) => tab.id === originalTabId);
-      originalTabIndex = originalTab?.index ?? null;
-    }
     
     tabCache = tabs.map((tab) => ({
       id: tab.id,
@@ -1153,35 +1144,6 @@ function handleGlobalKeydown(event) {
       event.preventDefault();
       searchInput.focus();
       searchInput.select();
-    }
-    return;
-  }
-
-  if (!isModifier && (event.key === "z" || event.key === "Z")) {
-    if (!isEditableTarget && originalTabId !== null) {
-      event.preventDefault();
-      // Try to find the original tab
-      let targetTab = tabCache.find((tab) => tab.id === originalTabId);
-      
-      // If not found, find closest tab by index
-      if (!targetTab && originalTabIndex !== null) {
-        let closestTab = null;
-        let minDiff = Infinity;
-        for (const tab of tabCache) {
-          const diff = Math.abs(tab.index - originalTabIndex);
-          if (diff < minDiff) {
-            minDiff = diff;
-            closestTab = tab;
-          }
-        }
-        targetTab = closestTab;
-      }
-      
-      if (targetTab) {
-        focusTab(targetTab.id, targetTab.windowId).catch((error) => {
-          console.error("Failed to jump back to original tab:", error);
-        });
-      }
     }
     return;
   }
