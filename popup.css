@@ -59,7 +59,7 @@ body.layout-full footer {
   right: clamp(24px, 4vw, 48px);
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
   gap: 12px;
   margin: 0;
   width: auto;
@@ -79,10 +79,17 @@ body.layout-full footer button {
 body.layout-full .footer-secondary {
   display: flex;
   gap: 10px;
+  justify-content: center;
+  width: 100%;
 }
 
 body.layout-full .footer-secondary button {
   flex: 0 0 auto;
+}
+
+body.layout-full .default-toggle {
+  justify-content: center;
+  width: 100%;
 }
 .default-toggle {
   display: flex;
@@ -559,6 +566,8 @@ button:disabled {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  position: relative;
+  padding-right: 48px;
 }
 
 body.layout-full .about {
@@ -607,6 +616,15 @@ body.layout-full .about:not(.hidden) {
 .about button {
   align-self: flex-start;
   padding-inline: 14px;
+}
+
+.about .circle-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  font-size: 18px;
 }
 
 .circle-close {

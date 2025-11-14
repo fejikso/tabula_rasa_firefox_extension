@@ -1,49 +1,62 @@
-Created by Fejikso
-github.
-
 # Tabula Rasa
 
-Tabula Rasa is a lightweight Firefox WebExtension that helps you prune your tab list. It shows every tab open in the current window, lets you check the ones you no longer need, and provides a single button to close them.
+Streamline how you review, sort, and close Firefox tabs. Tabula Rasa presents a fast, keyboard-friendly list of the tabs in your current window so you can decide what stays open and what goes. The project lives at [github.com/fejikso/tabula_rasa_firefox_extension](https://github.com/fejikso/tabula_rasa_firefox_extension).
 
-## Getting Started
+---
 
-1. Install the Mozilla `web-ext` CLI if you do not already have it:
-   ```bash
-   npm install --global web-ext
-   ```
-2. Run the extension in a temporary Firefox profile with live reloading:
-   ```bash
-   web-ext run
-   ```
-   The command automatically loads the extension from this directory. Keep the terminal open while developing.
+## Quick Start
 
-## Manual Testing
+1. Click the Tabula Rasa toolbar icon (popup view) or press **F8** (full-page view).  
+2. Filter tabs by typing in the search box – use **Esc** to clear the query.  
+3. Press **1 / 2 / 3** to switch between window order, most recently used, or oldest tabs first.  
+4. Tick the tabs you want to close and hit **Ctrl/Cmd + Enter**, or click the ❌ next to any single tab to close it immediately.  
+5. Want the full-page layout by default? Open the full view and enable **“Always open Tabula Rasa in full view.”**
 
-If you prefer loading the extension manually:
+---
 
-1. Navigate to `about:debugging#/runtime/this-firefox` in Firefox.
-2. Click **Load Temporary Add-on…**.
-3. Select the `manifest.json` file in this project.
-4. Click the Tabula Rasa toolbar icon and verify:
-   - All current window tabs appear with their titles.
-   - Checking boxes enables the **Close selected tabs** button and updates the count.
-   - Clicking the button closes the chosen tabs and removes them from the list.
+## Views at a Glance
 
-## Packaging for AMO
+| Popup | Full View |
+| --- | --- |
+| Compact list for quick triage. | Spacious layout with URL + “last accessed” metadata. |
+| Toggle hidden pinned tabs on/off. | Fix the action buttons in the top-right corner. |
+| Launches from the toolbar icon. | Opened via F8 or by clicking **Open full page view**. |
 
-To produce a signed-ready ZIP archive:
+You can switch between them at any time; both share the same filters, selections, and preferences.
 
-```bash
-web-ext build --overwrite-dest
-```
+---
 
-The bundle is generated in the `web-ext-artifacts/` directory. You can upload that ZIP to the Firefox Add-ons (AMO) dashboard for signing or distribution.
+## Keyboard Shortcuts
 
-## Permissions
+| Shortcut | Action |
+| --- | --- |
+| **Space** | Toggle the focused tab’s checkbox. |
+| **Enter** | Jump to the focused tab in Firefox. |
+| **X** | Close the focused tab item. |
+| **Ctrl/Cmd + Click** | Close the clicked tab instantly. |
+| **Ctrl/Cmd + Enter** | Close all selected tabs. |
+| **J / K** | Move focus down / up the list. |
+| **1 / 2 / 3** | Switch sorting: window / recent / oldest. |
+| **S** | Focus the search box. |
+| **Esc** | Clear the search field (or exit it if already empty). |
+| **F** | Open the full-page view (when in the popup). |
+| **Q** | Close the full-page view tab. |
+| **F8** | Launch Tabula Rasa from anywhere. |
 
-The extension requests the `tabs` permission so it can enumerate and close the user-selected tabs in the current window. No tab content is read or stored.
+You can revisit these at any time via the **Hotkeys** button.
+
+---
+
+## Tips & Support
+
+- Need to show pinned tabs? Toggle **Hide pinned** at the top of the list.  
+- Sorting and view preferences persist automatically between sessions.  
+- The **Tip** button (or [paypal.me/fejikso](http://paypal.me/fejikso)) helps support ongoing development.  
+- Found a bug or have a feature request? Open an issue on the project repo or email <fcueto@gmail.com>.
+
+---
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0. See the [LICENSE](LICENSE) file for details.
+Tabula Rasa is released under the GNU General Public License v3.0. See [LICENSE](LICENSE) for details.
 

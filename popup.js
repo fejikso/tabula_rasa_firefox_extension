@@ -198,6 +198,11 @@ function renderTabs(tabs) {
     const lastAccessedSpan = clone.querySelector(".tab-last-accessed");
 
     item.dataset.tabId = tab.id;
+    if (typeof tab.windowId === "number") {
+      item.dataset.windowId = String(tab.windowId);
+    } else {
+      delete item.dataset.windowId;
+    }
     item.tabIndex = 0;
 
     const displayTitle = tab.title?.trim() || tab.url || "Untitled tab";
@@ -574,6 +579,18 @@ function handleGlobalKeydown(event) {
   }
 
   if (!isModifier && !isEditableTarget) {
+    if (event.key === "Enter") {
+      const activeItem = getActiveTabItem();
+      if (activeItem) {
+        event.preventDefault();
+        const tabId = Number(activeItem.dataset.tabId);
+        const windowId = Number(activeItem.dataset.windowId);
+        focusTab(tabId, Number.isNaN(windowId) ? undefined : windowId).catch((error) => {
+          console.error("Unexpected error focusing tab with Enter:", error);
+        });
+      }
+      return;
+    }
     if (event.key === "1") {
       event.preventDefault();
       setSortMode("window");
