@@ -8,7 +8,7 @@ Tabula Rasa is a Firefox WebExtension focused on rapid tab triage. The codebase 
 ├── manifest.json          # Extension registration & permissions
 ├── popup.html / popup.css / popup.js
 │   └─ Popup UI shared with the full-page view
-├── full.html              # Full-page layout reusing popup script/styles
+├── tabula-rasa-full-view.html # Full-page layout reusing popup script/styles
 ├── README.md              # User-facing walkthrough
 ├── README_DEV.md          # You are here
 └── ideas/, icon.svg       # Artwork and references

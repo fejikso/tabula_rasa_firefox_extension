@@ -255,6 +255,38 @@ body.layout-full .sort-controls {
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
 }
 
+.selection-controls {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 6px;
+}
+
+.selection-button {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.06);
+  color: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.selection-button:hover {
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.selection-button:disabled {
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.4);
+  cursor: not-allowed;
+}
+
+body.layout-full .selection-controls {
+  justify-content: flex-end;
+}
+
 @media (max-width: 720px) {
   body.layout-full {
     padding: 24px;

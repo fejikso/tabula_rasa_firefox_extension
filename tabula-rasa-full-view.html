@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tabula Rasa</title>
+    <title>Tabula Rasa – Full View</title>
     <link rel="stylesheet" href="popup.css" />
   </head>
-  <body>
+  <body class="layout-full">
     <header>
       <div class="header-row">
         <div class="brand">
@@ -78,22 +78,23 @@
         >
           Hide pinned
         </button>
-        <button id="sort-window" type="button" class="sort-button active">1 · Current order</button>
+        <button id="sort-window" type="button" class="sort-button active">1 · Window order</button>
         <button id="sort-recent" type="button" class="sort-button">2 · Recent first</button>
         <button id="sort-oldest" type="button" class="sort-button">3 · Oldest first</button>
-      </div>
-      <div class="selection-controls">
-        <button id="select-visible" type="button" class="selection-button">Select all</button>
       </div>
       <section id="tab-container" aria-live="polite"></section>
       <p id="empty-state" class="muted hidden">No tabs to show.</p>
     </main>
     <footer>
-      <button id="close-selected" type="button" disabled>Close selected tabs</button>
+      <button id="close-selected" type="button" disabled>Close selected tabs</button>      
       <div class="footer-secondary">
         <button id="hotkeys-button" type="button" class="secondary">Hotkeys</button>
         <button id="tip-button" type="button" class="secondary">Tip</button>
       </div>
+      <label class="default-toggle">
+        <input id="default-full-view" type="checkbox" />
+        <span>Always open Tabula Rasa in full view</span>
+      </label>
     </footer>
 
     <aside

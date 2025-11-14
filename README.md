@@ -8,7 +8,7 @@ Streamline how you review, sort, and close Firefox tabs. Tabula Rasa presents a 
 
 1. Click the Tabula Rasa toolbar icon (popup view) or press **F8** (full-page view).  
 2. Filter tabs by typing in the search box – use **Esc** to clear the query.  
-3. Press **1 / 2 / 3** to switch between window order, most recently used, or oldest tabs first.  
+3. Press **1 / 2 / 3** to switch between current order, most recently used, or oldest tabs first.  
 4. Tick the tabs you want to close and hit **Ctrl/Cmd + Enter**, or click the ❌ next to any single tab to close it immediately.  
 5. Want the full-page layout by default? Open the full view and enable **“Always open Tabula Rasa in full view.”**
 
@@ -36,7 +36,7 @@ You can switch between them at any time; both share the same filters, selections
 | **Ctrl/Cmd + Click** | Close the clicked tab instantly. |
 | **Ctrl/Cmd + Enter** | Close all selected tabs. |
 | **J / K** | Move focus down / up the list. |
-| **1 / 2 / 3** | Switch sorting: window / recent / oldest. |
+| **1 / 2 / 3** | Switch sorting: current / recent / oldest. |
 | **S** | Focus the search box. |
 | **Esc** | Clear the search field (or exit it if already empty). |
 | **F** | Open the full-page view (when in the popup). |
@@ -59,4 +59,3 @@ You can revisit these at any time via the **Hotkeys** button.
 ## License
 
 Tabula Rasa is released under the GNU General Public License v3.0. See [LICENSE](LICENSE) for details.
-

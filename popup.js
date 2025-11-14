@@ -15,10 +15,12 @@ const expandButton = document.getElementById("expand-button");
 const togglePinnedButton = document.getElementById("toggle-pinned");
 const searchInput = document.getElementById("search-tabs");
 const searchClearButton = document.getElementById("search-clear");
+const selectVisibleButton = document.getElementById("select-visible");
 const defaultFullViewCheckbox = document.getElementById("default-full-view");
 const pathName = window.location.pathname || "";
+const FULL_VIEW_FILE = "tabula-rasa-full-view.html";
 const isPopupView = pathName.endsWith("/popup.html") || pathName.endsWith("popup.html");
-const isFullView = pathName.endsWith("/full.html") || pathName.endsWith("full.html");
+const isFullView = pathName.endsWith(`/${FULL_VIEW_FILE}`) || pathName.endsWith(FULL_VIEW_FILE);
 
 const selectedTabIds = new Set();
 let tabCache = [];
@@ -162,6 +164,21 @@ function updateSearchClearVisibility() {
   searchClearButton.setAttribute("aria-disabled", String(!hasQuery));
 }
 
+function updateSelectVisibleButton(currentVisibleTabs) {
+  if (!selectVisibleButton) {
+    return;
+  }
+  const visibleTabs = currentVisibleTabs ?? getVisibleTabs();
+  if (visibleTabs.length === 0) {
+    selectVisibleButton.disabled = true;
+    selectVisibleButton.textContent = "Select all";
+    return;
+  }
+  selectVisibleButton.disabled = false;
+  const allVisibleSelected = visibleTabs.every((tab) => selectedTabIds.has(tab.id));
+  selectVisibleButton.textContent = allVisibleSelected ? "Clear selection" : "Select all";
+}
+
 function handleCheckboxChange(tabId, checkbox) {
   if (checkbox.checked) {
     selectedTabIds.add(tabId);
@@ -169,6 +186,7 @@ function handleCheckboxChange(tabId, checkbox) {
     selectedTabIds.delete(tabId);
   }
   updateCloseButtonState();
+  updateSelectVisibleButton();
 }
 
 function removeClosedTabs(closedIds) {
@@ -269,6 +287,7 @@ function renderTabs(tabs) {
   });
 
   toggleEmptyState();
+  updateSelectVisibleButton(tabs);
 
   if (searchHasFocus) {
     return;
@@ -467,6 +486,39 @@ if (searchInput) {
 }
 
 if (searchClearButton) {
+  searchClearButton.addEventListener("click", () => {
+    if (!searchInput) {
+      return;
+    }
+    searchInput.value = "";
+    searchQuery = "";
+    renderTabs(getVisibleTabs());
+    updateSearchClearVisibility();
+    searchInput.focus();
+  });
+}
+
+if (selectVisibleButton) {
+  selectVisibleButton.addEventListener("click", () => {
+    const visibleTabs = getVisibleTabs();
+    if (visibleTabs.length === 0) {
+      return;
+    }
+    const allVisibleSelected = visibleTabs.every((tab) => selectedTabIds.has(tab.id));
+    if (allVisibleSelected) {
+      visibleTabs.forEach((tab) => {
+        selectedTabIds.delete(tab.id);
+      });
+    } else {
+      visibleTabs.forEach((tab) => {
+        selectedTabIds.add(tab.id);
+      });
+    }
+    updateCloseButtonState();
+    renderTabs(getVisibleTabs());
+  });
+}
+
 if (defaultFullViewCheckbox) {
   defaultFullViewCheckbox.addEventListener("change", async () => {
     launchFullViewByDefault = defaultFullViewCheckbox.checked;
@@ -480,23 +532,28 @@ if (defaultFullViewCheckbox) {
   });
   updateDefaultLaunchCheckbox();
 }
-  searchClearButton.addEventListener("click", () => {
-    if (!searchInput) {
-      return;
-    }
-    searchInput.value = "";
-    searchQuery = "";
-    renderTabs(getVisibleTabs());
-    updateSearchClearVisibility();
-    searchInput.focus();
-  });
-}
 
 async function openFullView() {
   try {
-    const fullViewUrl = browser.runtime.getURL("full.html");
-    await browser.tabs.create({ url: fullViewUrl });
-    window.close();
+    const fullViewUrl = browser.runtime.getURL(FULL_VIEW_FILE);
+    const existingTabs = await browser.tabs.query({ url: [fullViewUrl] });
+    if (existingTabs.length > 0) {
+      const targetTab = existingTabs[0];
+      await browser.tabs.update(targetTab.id, { active: true });
+      if (typeof targetTab.windowId === "number") {
+        await browser.windows.update(targetTab.windowId, { focused: true });
+      }
+      if (isPopupView) {
+        window.close();
+      }
+      return;
+    }
+    const createdTab = await browser.tabs.create({ url: fullViewUrl });
+    if (isPopupView) {
+      window.close();
+    } else if (typeof createdTab?.windowId === "number") {
+      await browser.windows.update(createdTab.windowId, { focused: true });
+    }
   } catch (error) {
     console.error("Failed to open full view:", error);
   }
