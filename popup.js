@@ -230,7 +230,7 @@ function updatePinnedToggleState() {
   if (!togglePinnedButton) {
     return;
   }
-  togglePinnedButton.classList.toggle("active", hidePinned);
+  togglePinnedButton.classList.toggle("unified-button--active", hidePinned);
   togglePinnedButton.setAttribute("aria-pressed", String(hidePinned));
   togglePinnedButton.textContent = hidePinned ? "Hide pins" : "Show pins";
 }
@@ -542,9 +542,9 @@ function updateSortButtonState() {
   if (!sortWindowButton || !sortRecentButton || !sortOldestButton) {
     return;
   }
-  sortWindowButton.classList.toggle("active", sortMode === "window");
-  sortRecentButton.classList.toggle("active", sortMode === "recent");
-  sortOldestButton.classList.toggle("active", sortMode === "oldest");
+  sortWindowButton.classList.toggle("unified-button--active", sortMode === "window");
+  sortRecentButton.classList.toggle("unified-button--active", sortMode === "recent");
+  sortOldestButton.classList.toggle("unified-button--active", sortMode === "oldest");
 }
 
 function getSortedTabs() {
@@ -885,6 +885,7 @@ if (expandButton) {
 async function init() {
   await restoreSortMode();
   updateSortButtonState();
+  updatePinnedToggleState();
   if (isPopupView && launchFullViewByDefault) {
     await openFullView();
     return;

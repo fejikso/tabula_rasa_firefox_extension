@@ -109,13 +109,47 @@ body.layout-full .tab-scroll {
 body.layout-full .sidebar-panel {
   display: flex;
   flex-direction: column;
-  gap: clamp(14px, 2.5vw, 20px);
+  gap: 12px;
   position: sticky;
   top: clamp(24px, 4vw, 48px);
   align-self: start;
   min-width: clamp(260px, 28vw, 360px);
   max-width: clamp(260px, 28vw, 360px);
   padding-right: 4px;
+}
+
+/* Sidebar Button Rows */
+.button-row {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.button-row .unified-button {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* Ordering row in full view - column layout with title */
+.button-row-ordering {
+  flex-direction: column;
+  gap: 6px;
+  align-items: stretch;
+}
+
+.button-row-ordering .ordering-title {
+  text-align: center;
+}
+
+.button-row-ordering .ordering-buttons {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.button-row-ordering .ordering-buttons .unified-button {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .utility-panel {
@@ -141,19 +175,12 @@ body.layout-full.orientation-vertical .sidebar-panel {
   padding-right: 0;
 }
 
-body.layout-full.orientation-vertical .controls-bar {
-  border-bottom: 1px solid var(--border);
-  padding-block: 6px;
-  background: var(--bg);
+body.layout-full.orientation-vertical .sidebar-panel {
+  gap: 8px;
 }
 
-body.layout-full.orientation-vertical .utility-panel {
-  box-shadow: none;
-  padding: 0;
-  border: none;
-  backdrop-filter: none;
-  background: transparent;
-  align-items: flex-start;
+body.layout-full.orientation-vertical .button-row {
+  flex-wrap: wrap;
 }
 
 body.layout-full .utility-panel button {
@@ -402,6 +429,11 @@ main {
   gap: 4px;
 }
 
+.ordering-buttons .unified-button {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
 .ordering-button {
   flex: 1 1 0;
   min-width: 0;
@@ -416,6 +448,86 @@ main {
   min-width: max-content;
   align-self: flex-end;
   gap: 4px;
+}
+
+/* Unified Button Base Style */
+.unified-button {
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.05);
+  color: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 12px;
+  min-height: 32px;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.unified-button:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.unified-button:active {
+  transform: translateY(1px);
+}
+
+.unified-button:disabled {
+  background: rgba(0, 0, 0, 0.04);
+  color: rgba(0, 0, 0, 0.4);
+  cursor: not-allowed;
+}
+
+/* Unified Button Variants */
+.unified-button--active {
+  background: rgba(0, 96, 223, 0.12);
+  border-color: rgba(0, 96, 223, 0.35);
+  color: var(--accent);
+}
+
+.unified-button--active:hover {
+  background: rgba(0, 96, 223, 0.18);
+}
+
+.unified-button--primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: transparent;
+}
+
+.unified-button--primary:hover {
+  background: var(--accent-hover);
+}
+
+.unified-button--primary:disabled {
+  background: rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.unified-button--toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.unified-button--toggle::before {
+  content: "";
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: 2px solid currentColor;
+  background: transparent;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.unified-button--toggle.unified-button--active::before {
+  background: currentColor;
+  border-color: currentColor;
 }
 
 .selection-button {
@@ -617,32 +729,23 @@ body.layout-full .tab-close {
 
 footer {
   display: flex;
-  gap: 8px;
+  gap: 6px;
 }
 
 body:not(.layout-full) .popup-footer {
   flex-direction: row;
   align-items: stretch;
+  max-width: 100%;
+  min-width: 0;
 }
 
-.popup-footer .footer-button {
+.popup-footer .unified-button {
   flex: 1 1 0;
   text-align: center;
-}
-
-.popup-footer .footer-button-primary {
-  background: var(--accent);
-  color: #fff;
-  border-color: transparent;
-}
-
-.popup-footer .footer-button-primary:hover:not(:disabled) {
-  background: var(--accent-hover);
-}
-
-.popup-footer .footer-button-primary:disabled {
-  background: rgba(0, 0, 0, 0.1);
-  color: rgba(0, 0, 0, 0.5);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .footer-secondary {
@@ -726,18 +829,18 @@ button:disabled {
   color: rgba(0, 0, 0, 0.4);
 }
 
-body:not(.layout-full) .sort-button,
-body:not(.layout-full) .selection-button {
+/* Popup view uses unified-button with compact sizing */
+body:not(.layout-full) .unified-button {
   padding: 4px 8px;
   min-height: 28px;
   font-size: 12px;
 }
 
-body.layout-full .sort-button,
-body.layout-full .selection-button {
-  padding: 8px 14px;
-  min-height: 34px;
-  font-size: 13px;
+/* Full view uses unified-button with standard sizing */
+body.layout-full .unified-button {
+  padding: 6px 12px;
+  min-height: 32px;
+  font-size: 12px;
 }
 
 body.layout-full .ordering-row {

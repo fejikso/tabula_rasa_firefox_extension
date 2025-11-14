@@ -16,8 +16,7 @@
   },
   "permissions": [
     "tabs",
-    "storage",
-    "commands"
+    "storage"
   ],
   "commands": {
     "_execute_action": {

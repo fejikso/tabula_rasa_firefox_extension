@@ -70,34 +70,89 @@
     </header>
     <div class="full-view">
       <aside class="sidebar-panel">
-        <div class="controls-bar">
-          <div class="sort-controls ordering-row" role="group" aria-label="Sort tabs">
-            <button id="sort-window" type="button" class="sort-button ordering-button active">(1) Browser</button>
-            <button id="sort-recent" type="button" class="sort-button ordering-button">(2) Newest</button>
-            <button id="sort-oldest" type="button" class="sort-button ordering-button">(3) Oldest</button>
-          </div>
-          <div class="control-bar-bottom">
+        <div class="button-row button-row-misc1">
+          <button
+            id="toggle-pinned"
+            type="button"
+            class="unified-button unified-button--toggle"
+            aria-pressed="true"
+            title="Hide or show pinned tabs (P)"
+          >
+            Hide pins
+          </button>
+          <button
+            id="select-visible"
+            type="button"
+            class="unified-button"
+            title="Select or clear all visible tabs (A)"
+          >
+            Select all
+          </button>
+          <button
+            id="close-selected"
+            type="button"
+            class="unified-button unified-button--primary"
+            disabled
+            title="Close selected tabs (Ctrl/Cmd + Enter)"
+          >
+            Close selected
+          </button>
+        </div>
+        <div class="button-row button-row-ordering" role="group" aria-label="Sort tabs">
+          <span class="ordering-title">Order by</span>
+          <div class="ordering-buttons">
             <button
-              id="toggle-pinned"
+              id="sort-window"
               type="button"
-              class="sort-button toggle-button active"
-              aria-pressed="true"
+              class="unified-button unified-button--active"
+              title="Sort by browser order (1)"
             >
-              Hide pins
+              Browser
             </button>
-            <div class="selection-controls">
-              <button id="select-visible" type="button" class="selection-button">(A) Select all</button>
-            </div>
+            <button
+              id="sort-recent"
+              type="button"
+              class="unified-button"
+              title="Sort by most recent (2)"
+            >
+              Newest
+            </button>
+            <button
+              id="sort-oldest"
+              type="button"
+              class="unified-button"
+              title="Sort by oldest first (3)"
+            >
+              Oldest
+            </button>
           </div>
         </div>
-        <section class="utility-panel">
-          <button id="close-selected" type="button" disabled>(CTRL-ENTER) Close selected</button>
-          <div class="footer-secondary">
-            <button id="hotkeys-button" type="button" class="secondary">(?) Hotkeys</button>
-            <button id="options-button" type="button" class="secondary">(O) Options</button>
-            <button id="tip-button" type="button" class="secondary">Tip</button>
-          </div>
-        </section>
+        <div class="button-row button-row-misc2">
+          <button
+            id="hotkeys-button"
+            type="button"
+            class="unified-button"
+            title="Open hotkey help (?)"
+          >
+            Hotkeys
+          </button>
+          <button
+            id="options-button"
+            type="button"
+            class="unified-button"
+            title="Open options (O)"
+          >
+            Options
+          </button>
+          <button
+            id="tip-button"
+            type="button"
+            class="unified-button"
+            title="Support the author"
+          >
+            Tip
+          </button>
+        </div>
       </aside>
       <main>
         <div class="tab-scroll">

@@ -76,20 +76,20 @@
             <button
               id="toggle-pinned"
               type="button"
-              class="sort-button toggle-button active"
+              class="unified-button unified-button--toggle unified-button--active"
               aria-pressed="true"
               title="Hide or show pinned tabs (P)"
             >
             Hide pins
             </button>
           </div>
-          <div class="ordering-group control-block" aria-label="Ordering by">
-            <span class="ordering-title">Ordering by</span>
+          <div class="ordering-group control-block" aria-label="Sort by">
+            <span class="ordering-title">Sort by</span>
             <div class="ordering-buttons">
               <button
                 id="sort-window"
                 type="button"
-                class="sort-button ordering-button active"
+                class="unified-button unified-button--active"
                 title="Sort by browser order (1)"
               >
                 Browser
@@ -97,7 +97,7 @@
               <button
                 id="sort-recent"
                 type="button"
-                class="sort-button ordering-button"
+                class="unified-button"
                 title="Sort by most recent (2)"
               >
                 Newest
@@ -105,7 +105,7 @@
               <button
                 id="sort-oldest"
                 type="button"
-                class="sort-button ordering-button"
+                class="unified-button"
                 title="Sort by oldest first (3)"
               >
                 Oldest
@@ -117,7 +117,7 @@
           <button
             id="select-visible"
             type="button"
-            class="selection-button"
+            class="unified-button"
             title="Select or clear all visible tabs (A)"
           >
             Select all
@@ -131,7 +131,7 @@
       <button
         id="close-selected"
         type="button"
-        class="sort-button footer-button footer-button-primary"
+        class="unified-button unified-button--primary"
         title="Close selected tabs (Ctrl/Cmd + Enter)"
         disabled
       >
@@ -140,7 +140,7 @@
       <button
         id="hotkeys-button"
         type="button"
-        class="sort-button footer-button"
+        class="unified-button"
         title="Open hotkey help (?)"
       >
         Hotkeys
@@ -148,12 +148,12 @@
       <button
         id="options-button"
         type="button"
-        class="sort-button footer-button"
+        class="unified-button"
         title="Open options (O)"
       >
         Options
       </button>
-      <button id="tip-button" type="button" class="sort-button footer-button" title="Support the author">
+      <button id="tip-button" type="button" class="unified-button" title="Support the author">
         Tip
       </button>
     </footer>
