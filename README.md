@@ -37,6 +37,8 @@ You can switch between them at any time; both share the same filters, selections
 | **Enter** | Open the focused tab. |
 | **Space** | Toggle the focused tab’s checkbox. |
 | **J / K** | Move focus down / up the list. |
+| **Ctrl/Cmd + J / K** | Jump to top / bottom of the list (like Home/End). |
+| **Home / End** | Jump to top / bottom of the list. |
 | **X** | Close the focused tab item. |
 | **Ctrl/Cmd + Click** | Close the clicked tab instantly. |
 | **Ctrl/Cmd + Enter** | Close all selected tabs. |
@@ -69,7 +71,7 @@ The **Options** panel (accessible via the **O** key or the Options button) lets 
 
 - **Always open in full view**: Open Tabula Rasa in full-page view by default.
 - **Vertical layout**: Use vertical split layout in full view (controls on top, tabs below).
-- **Launch hotkey**: Choose your preferred keyboard shortcut to launch Tabula Rasa (F8, Ctrl+Comma, Ctrl+Period, or Alt+Shift+T).
+- **Launch hotkey**: Choose your preferred keyboard shortcut to launch Tabula Rasa (F8, F9, Ctrl+Comma, Ctrl+Shift+Comma, Ctrl+Period, or Ctrl+Shift+Period).
 
 All preferences are saved automatically and persist across sessions.
 
@@ -77,15 +79,32 @@ All preferences are saved automatically and persist across sessions.
 
 ## Advanced: Customize Shortcuts via about:config
 
-If you need a shortcut not available in the Options panel, Firefox lets you remap extension shortcuts with `about:config`:
+If you need a shortcut not available in the Options panel, Firefox lets you remap extension shortcuts with `about:config`. However, the **easier method** is to use Firefox's built-in UI:
+
+### Recommended: Use Firefox's UI
+
+1. Go to `about:addons` (or Tools → Add-ons and Themes).
+2. Find **Tabula Rasa** and click the gear icon (or "Manage").
+3. Click **Keyboard Shortcuts**.
+4. Change the shortcut for "Open Tabula Rasa" to your preferred key combination.
+
+### Alternative: Manual about:config Method
+
+If you prefer to edit preferences directly:
 
 1. Open a new tab and visit `about:config`, then accept the warning prompt.
-2. Search for `extensions.webextensions.commands`.
-3. Locate the preference whose name includes **tabula-rasa** (its value looks like `{"_execute_action":{"shortcut":"F8"}}`).
-4. Edit the value and change the `shortcut` string to the key combo you prefer (e.g. `Ctrl+Shift+F`), then confirm.
-5. Reload the extension (disable/enable it from **about:addons**) if the new shortcut does not take effect immediately.
+2. Search for `tabula` or `rasa` to find preferences related to the extension.
+3. If no results appear, you may need to find your extension ID first:
+   - Go to `about:debugging` → **This Firefox**.
+   - Find Tabula Rasa in the list and note its **Internal UUID** (extension ID).
+   - In `about:config`, search for that UUID or for `extensions.webextensions.commands`.
+4. Look for a preference whose name includes the extension ID or **tabula-rasa**. The preference value should be a JSON string like `{"_execute_action":{"shortcut":"F8"}}`.
+5. Double-click the preference to edit it, and change the `shortcut` value to your preferred key combo (e.g. `Ctrl+Shift+F`). The full JSON should look like `{"_execute_action":{"shortcut":"Ctrl+Shift+F"}}`.
+6. Reload the extension (disable/enable it from **about:addons**) if the new shortcut does not take effect immediately.
 
-You can revert at any time by using the Reset action on the same preference, or change it back via the Options panel.
+**Note:** The preference may not exist until the extension has been installed and the command has been used at least once. If you can't find it, use the UI method above instead.
+
+You can revert at any time by using the Reset action on the same preference, or change it back via the Options panel or the Keyboard Shortcuts UI.
 
 ---
 

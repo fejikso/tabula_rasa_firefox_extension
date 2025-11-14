@@ -18,6 +18,7 @@ const searchClearButton = document.getElementById("search-clear");
 const selectVisibleButton = document.getElementById("select-visible");
 const defaultFullViewCheckbox = document.getElementById("default-full-view");
 const orientationToggle = document.getElementById("full-view-orientation");
+const tabCountElement = document.getElementById("tab-count");
 const pathName = window.location.pathname || "";
 const FULL_VIEW_FILE = "tabula-rasa-full-view.html";
 const isPopupView = pathName.endsWith("/popup.html") || pathName.endsWith("popup.html");
@@ -30,6 +31,10 @@ const SORT_MODE_KEY = "tabulaRasa.sortMode";
 const LAUNCH_FULL_VIEW_KEY = "tabulaRasa.launchFullView";
 const FULL_VIEW_ORIENTATION_KEY = "tabulaRasa.fullViewOrientation";
 const LAUNCH_HOTKEY_KEY = "tabulaRasa.launchHotkey";
+const FOCUS_SEARCH_FIRST_KEY = "tabulaRasa.focusSearchFirst";
+const CONFIRM_BEFORE_CLOSE_KEY = "tabulaRasa.confirmBeforeClose";
+const CLOSE_POPUP_AFTER_OPEN_KEY = "tabulaRasa.closePopupAfterOpen";
+const HIDE_PINNED_BY_DEFAULT_KEY = "tabulaRasa.hidePinnedByDefault";
 const ORIENTATION_HORIZONTAL = "horizontal";
 const ORIENTATION_VERTICAL = "vertical";
 let hidePinned = true;
@@ -38,6 +43,12 @@ let launchFullViewByDefault = false;
 let activeTabIdFocusTarget = null;
 let shouldFocusActiveTab = false;
 let fullViewOrientation = ORIENTATION_HORIZONTAL;
+let focusSearchFirst = true;
+let confirmBeforeClose = true;
+let closePopupAfterOpen = true;
+let hidePinnedByDefault = true;
+let originalTabId = null;
+let originalTabIndex = null;
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
   dateStyle: "medium",
@@ -73,6 +84,13 @@ function formatLastAccessed(timestamp) {
 async function closeSingleTabImmediate(tabId) {
   if (typeof tabId !== "number") {
     return;
+  }
+  if (confirmBeforeClose) {
+    const tab = tabCache.find((t) => t.id === tabId);
+    const tabTitle = tab?.title || "this tab";
+    if (!confirm(`Close tab: ${tabTitle}?`)) {
+      return;
+    }
   }
   try {
     await browser.tabs.remove(tabId);
@@ -178,6 +196,10 @@ async function restoreSortMode() {
       SORT_MODE_KEY,
       LAUNCH_FULL_VIEW_KEY,
       FULL_VIEW_ORIENTATION_KEY,
+      FOCUS_SEARCH_FIRST_KEY,
+      CONFIRM_BEFORE_CLOSE_KEY,
+      CLOSE_POPUP_AFTER_OPEN_KEY,
+      HIDE_PINNED_BY_DEFAULT_KEY,
     ]);
     const savedMode = stored?.[SORT_MODE_KEY];
     if (isValidSortMode(savedMode)) {
@@ -191,6 +213,19 @@ async function restoreSortMode() {
       applyFullViewOrientation(savedOrientation);
     } else {
       applyFullViewOrientation(ORIENTATION_HORIZONTAL);
+    }
+    if (typeof stored?.[FOCUS_SEARCH_FIRST_KEY] === "boolean") {
+      focusSearchFirst = stored[FOCUS_SEARCH_FIRST_KEY];
+    }
+    if (typeof stored?.[CONFIRM_BEFORE_CLOSE_KEY] === "boolean") {
+      confirmBeforeClose = stored[CONFIRM_BEFORE_CLOSE_KEY];
+    }
+    if (typeof stored?.[CLOSE_POPUP_AFTER_OPEN_KEY] === "boolean") {
+      closePopupAfterOpen = stored[CLOSE_POPUP_AFTER_OPEN_KEY];
+    }
+    if (typeof stored?.[HIDE_PINNED_BY_DEFAULT_KEY] === "boolean") {
+      hidePinnedByDefault = stored[HIDE_PINNED_BY_DEFAULT_KEY];
+      hidePinned = hidePinnedByDefault;
     }
     await loadOptions();
   } catch (error) {
@@ -210,7 +245,7 @@ function updateCloseButtonState() {
   closeButton.disabled = selectedTabIds.size === 0;
   closeButton.textContent =
     selectedTabIds.size > 0
-      ? `Close ${selectedTabIds.size} selected tab${selectedTabIds.size > 1 ? "s" : ""}`
+      ? `Close ${selectedTabIds.size} tab${selectedTabIds.size > 1 ? "s" : ""}`
       : "Close selected tabs";
 }
 
@@ -297,6 +332,13 @@ function handleCheckboxChange(tabId, checkbox) {
   }
 }
 
+function updateTabCount() {
+  if (tabCountElement) {
+    const count = tabCache.length;
+    tabCountElement.textContent = `(${count})`;
+  }
+}
+
 function removeClosedTabs(closedIds) {
   const closedSet = new Set(closedIds);
   tabCache = tabCache.filter((tab) => !closedSet.has(tab.id));
@@ -304,6 +346,7 @@ function removeClosedTabs(closedIds) {
     selectedTabIds.delete(tabId);
   });
   updateCloseButtonState();
+  updateTabCount();
   renderTabs(getVisibleTabs());
 }
 
@@ -407,6 +450,14 @@ function renderTabs(tabs) {
     return;
   }
 
+  // If focusSearchFirst is enabled and we're not focusing an active tab, focus search first
+  if (focusSearchFirst && !shouldFocusActiveTab && searchInput) {
+    requestAnimationFrame(() => {
+      searchInput.focus({ preventScroll: true });
+    });
+    return;
+  }
+
   let targetItem = itemToRefocus ?? firstItem;
   let focusSearchAfter = false;
   if (shouldFocusActiveTab && activeItemElement) {
@@ -433,7 +484,9 @@ function renderTabs(tabs) {
   if (tabContainer.childElementCount === 0) {
     requestAnimationFrame(() => {
       if (document.hasFocus()) {
-        if (!focusFirstTabItem()) {
+        if (focusSearchFirst && searchInput) {
+          searchInput.focus({ preventScroll: true });
+        } else if (!focusFirstTabItem()) {
           focusElement(togglePinnedButton, { preventScroll: isFullView });
         }
       }
@@ -446,6 +499,15 @@ async function loadTabs() {
     const tabs = await browser.tabs.query({ currentWindow: true });
     activeTabIdFocusTarget = tabs.find((tab) => tab.active)?.id ?? null;
     shouldFocusActiveTab = Boolean(activeTabIdFocusTarget);
+    
+    // Track original tab for 'z' hotkey
+    const activeTab = tabs.find((tab) => tab.active);
+    originalTabId = activeTabIdFocusTarget ?? activeTab?.id ?? tabs[0]?.id ?? null;
+    if (originalTabId !== null) {
+      const originalTab = tabs.find((tab) => tab.id === originalTabId);
+      originalTabIndex = originalTab?.index ?? null;
+    }
+    
     tabCache = tabs.map((tab) => ({
       id: tab.id,
       windowId: tab.windowId,
@@ -455,6 +517,7 @@ async function loadTabs() {
       lastAccessed: tab.lastAccessed ?? 0,
       pinned: Boolean(tab.pinned),
     }));
+    updateTabCount();
     renderTabs(getVisibleTabs());
     updateSortButtonState();
   } catch (error) {
@@ -470,6 +533,13 @@ async function closeSelectedTabs() {
   }
 
   const tabIds = Array.from(selectedTabIds);
+
+  if (confirmBeforeClose) {
+    const count = tabIds.length;
+    if (!confirm(`Close ${count} selected tab${count > 1 ? "s" : ""}?`)) {
+      return;
+    }
+  }
 
   closeButton.disabled = true;
   closeButton.textContent = "Closing...";
@@ -500,6 +570,13 @@ async function focusTab(tabId, windowId) {
     await browser.tabs.update(tabId, { active: true });
     if (typeof windowId === "number") {
       await browser.windows.update(windowId, { focused: true });
+    }
+    if (closePopupAfterOpen) {
+      if (isPopupView) {
+        window.close();
+      } else if (isFullView) {
+        await closeFullViewTab();
+      }
     }
   } catch (error) {
     console.error("Failed to focus tab:", error);
@@ -549,13 +626,25 @@ function updateSortButtonState() {
 
 function getSortedTabs() {
   const tabs = [...tabCache];
+  
+  // Split into pinned and unpinned
+  const pinned = tabs.filter((tab) => tab.pinned);
+  const unpinned = tabs.filter((tab) => !tab.pinned);
+  
+  // Sort pinned tabs by their original index (maintain relative order)
+  pinned.sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
+  
+  // Sort unpinned tabs by selected sort mode
   if (sortMode === "recent") {
-    return tabs.sort((a, b) => (b.lastAccessed ?? 0) - (a.lastAccessed ?? 0));
+    unpinned.sort((a, b) => (b.lastAccessed ?? 0) - (a.lastAccessed ?? 0));
+  } else if (sortMode === "oldest") {
+    unpinned.sort((a, b) => (a.lastAccessed ?? 0) - (b.lastAccessed ?? 0));
+  } else {
+    unpinned.sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
   }
-  if (sortMode === "oldest") {
-    return tabs.sort((a, b) => (a.lastAccessed ?? 0) - (b.lastAccessed ?? 0));
-  }
-  return tabs.sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
+  
+  // Return pinned tabs first, then unpinned
+  return [...pinned, ...unpinned];
 }
 
 function getVisibleTabs() {
@@ -566,8 +655,8 @@ function getVisibleTabs() {
     return filteredByPin;
   }
   return filteredByPin.filter((tab) => {
-    const title = tab.title?.toLowerCase() ?? "";
-    const url = tab.url?.toLowerCase() ?? "";
+    const title = (tab.title?.trim() || "").toLowerCase();
+    const url = (tab.url || "").toLowerCase();
     return title.includes(query) || url.includes(query);
   });
 }
@@ -672,7 +761,7 @@ const OPTIONS_CONFIG = [
   },
   {
     id: "vertical-layout",
-    label: "Use vertical layout",
+    label: "Use vertical layout (only in full page view)",
     type: "checkbox",
     storageKey: FULL_VIEW_ORIENTATION_KEY,
     defaultValue: ORIENTATION_HORIZONTAL,
@@ -692,9 +781,11 @@ const OPTIONS_CONFIG = [
     defaultValue: "F8",
     options: [
       { value: "F8", label: "F8" },
+      { value: "F9", label: "F9" },
       { value: "Ctrl+Comma", label: "Ctrl+Comma" },
+      { value: "Ctrl+Shift+Comma", label: "Ctrl+Shift+Comma" },
       { value: "Ctrl+Period", label: "Ctrl+Period" },
-      { value: "Alt+Shift+T", label: "Alt+Shift+T" },
+      { value: "Ctrl+Shift+Period", label: "Ctrl+Shift+Period" },
     ],
     onChange: async (value) => {
       try {
@@ -707,6 +798,77 @@ const OPTIONS_CONFIG = [
         });
       } catch (error) {
         console.error("Failed to update launch hotkey:", error);
+      }
+    },
+  },
+  {
+    id: "focus-search-first",
+    label: "Focus on search bar first",
+    type: "checkbox",
+    storageKey: FOCUS_SEARCH_FIRST_KEY,
+    defaultValue: true,
+    onChange: async (value) => {
+      focusSearchFirst = value;
+      try {
+        await browser.storage.local.set({
+          [FOCUS_SEARCH_FIRST_KEY]: value,
+        });
+      } catch (error) {
+        console.error("Failed to save focus search first preference:", error);
+      }
+    },
+  },
+  {
+    id: "confirm-before-close",
+    label: "Confirm before closing tabs",
+    type: "checkbox",
+    storageKey: CONFIRM_BEFORE_CLOSE_KEY,
+    defaultValue: true,
+    onChange: async (value) => {
+      confirmBeforeClose = value;
+      try {
+        await browser.storage.local.set({
+          [CONFIRM_BEFORE_CLOSE_KEY]: value,
+        });
+      } catch (error) {
+        console.error("Failed to save confirm before close preference:", error);
+      }
+    },
+  },
+  {
+    id: "close-popup-after-open",
+    label: "Close popup after opening tab",
+    type: "checkbox",
+    storageKey: CLOSE_POPUP_AFTER_OPEN_KEY,
+    defaultValue: true,
+    onChange: async (value) => {
+      closePopupAfterOpen = value;
+      try {
+        await browser.storage.local.set({
+          [CLOSE_POPUP_AFTER_OPEN_KEY]: value,
+        });
+      } catch (error) {
+        console.error("Failed to save close popup after open preference:", error);
+      }
+    },
+  },
+  {
+    id: "hide-pinned-by-default",
+    label: "Hide pinned tabs by default",
+    type: "checkbox",
+    storageKey: HIDE_PINNED_BY_DEFAULT_KEY,
+    defaultValue: true,
+    onChange: async (value) => {
+      hidePinnedByDefault = value;
+      hidePinned = value;
+      updatePinnedToggleState();
+      renderTabs(getVisibleTabs());
+      try {
+        await browser.storage.local.set({
+          [HIDE_PINNED_BY_DEFAULT_KEY]: value,
+        });
+      } catch (error) {
+        console.error("Failed to save hide pinned by default preference:", error);
       }
     },
   },
@@ -734,6 +896,14 @@ async function loadOptions() {
             }
           } else if (option.id === "launch-full-view") {
             launchFullViewByDefault = storedValue;
+          } else if (option.id === "focus-search-first") {
+            focusSearchFirst = storedValue !== undefined ? storedValue : option.defaultValue;
+          } else if (option.id === "confirm-before-close") {
+            confirmBeforeClose = storedValue !== undefined ? storedValue : option.defaultValue;
+          } else if (option.id === "close-popup-after-open") {
+            closePopupAfterOpen = storedValue !== undefined ? storedValue : option.defaultValue;
+          } else if (option.id === "hide-pinned-by-default") {
+            hidePinnedByDefault = storedValue !== undefined ? storedValue : option.defaultValue;
           }
         } else if (option.type === "select" && option.id === "launch-hotkey") {
           const hotkey = storedValue || option.defaultValue;
@@ -961,6 +1131,35 @@ function handleGlobalKeydown(event) {
     return;
   }
 
+  if (!isModifier && (event.key === "z" || event.key === "Z")) {
+    if (!isEditableTarget && originalTabId !== null) {
+      event.preventDefault();
+      // Try to find the original tab
+      let targetTab = tabCache.find((tab) => tab.id === originalTabId);
+      
+      // If not found, find closest tab by index
+      if (!targetTab && originalTabIndex !== null) {
+        let closestTab = null;
+        let minDiff = Infinity;
+        for (const tab of tabCache) {
+          const diff = Math.abs(tab.index - originalTabIndex);
+          if (diff < minDiff) {
+            minDiff = diff;
+            closestTab = tab;
+          }
+        }
+        targetTab = closestTab;
+      }
+      
+      if (targetTab) {
+        focusTab(targetTab.id, targetTab.windowId).catch((error) => {
+          console.error("Failed to jump back to original tab:", error);
+        });
+      }
+    }
+    return;
+  }
+
   if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
     if (!closeButton.disabled) {
       event.preventDefault();
@@ -1052,6 +1251,20 @@ function handleGlobalKeydown(event) {
       }
       return;
     }
+    // CTRL-J to go to top (like HOME)
+    if ((event.ctrlKey || event.metaKey) && !event.shiftKey && (event.key === "j" || event.key === "J")) {
+      if (focusFirstTabItem()) {
+        event.preventDefault();
+      }
+      return;
+    }
+    // CTRL-K to go to bottom (like END)
+    if ((event.ctrlKey || event.metaKey) && !event.shiftKey && (event.key === "k" || event.key === "K")) {
+      if (focusLastTabItem()) {
+        event.preventDefault();
+      }
+      return;
+    }
     return;
   }
 
@@ -1097,6 +1310,22 @@ function handleGlobalKeydown(event) {
   }
 
   if (event.key === "End" && !isModifier) {
+    if (focusLastTabItem()) {
+      event.preventDefault();
+    }
+    return;
+  }
+
+  // CTRL-J to go to top (like HOME)
+  if ((event.ctrlKey || event.metaKey) && !event.shiftKey && (event.key === "j" || event.key === "J")) {
+    if (focusFirstTabItem()) {
+      event.preventDefault();
+    }
+    return;
+  }
+
+  // CTRL-K to go to bottom (like END)
+  if ((event.ctrlKey || event.metaKey) && !event.shiftKey && (event.key === "k" || event.key === "K")) {
     if (focusLastTabItem()) {
       event.preventDefault();
     }
