@@ -181,6 +181,19 @@ body.layout-full .footer-secondary button {
   flex: 0 0 auto;
 }
 
+body.layout-full.orientation-vertical .footer-secondary {
+  width: 100%;
+  justify-content: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+  max-width: 320px;
+}
+
+body.layout-full.orientation-vertical .footer-secondary button {
+  width: auto;
+  flex: 0 0 auto;
+}
+
 body.layout-full .default-toggle {
   justify-content: center;
   width: 100%;

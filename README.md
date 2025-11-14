@@ -32,12 +32,12 @@ You can switch between them at any time; both share the same filters, selections
 | --- | --- |
 | **F8** | Launch Tabula Rasa from anywhere. |
 | **S** / **Esc** | Focus the search box / clear it. |
-| **J / K** | Move focus down / up the list. |
-| **Enter** | Jump to the focused tab in Firefox. |
+| **Enter** | Open the focused tab. |
 | **Space** | Toggle the focused tab’s checkbox. |
+| **J / K** | Move focus down / up the list. |
 | **X** | Close the focused tab item. |
-| **Ctrl/Cmd + Enter** | Close all selected tabs. |
 | **Ctrl/Cmd + Click** | Close the clicked tab instantly. |
+| **Ctrl/Cmd + Enter** | Close all selected tabs. |
 | **?** | Open/close the hotkeys dialog. |
 | **P** | Hide or show pinned tabs. |
 | **A** | Select or clear all visible tabs. |
