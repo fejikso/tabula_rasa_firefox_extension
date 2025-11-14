@@ -38,7 +38,7 @@ body.layout-full {
   max-height: none;
   min-height: 100vh;
   padding: clamp(24px, 4vw, 48px);
-  gap: clamp(16px, 3vw, 28px);
+  gap: clamp(12px, 2.5vw, 12px);
 }
 
 body.layout-full header,
@@ -50,7 +50,7 @@ body.layout-full .about {
 
 body.layout-full main {
   overflow: visible;
-  padding-top: clamp(40px, 6vw, 72px);
+  padding-top: clamp(20px, 4vw, 40px);
 }
 
 body.layout-full footer {
@@ -58,13 +58,14 @@ body.layout-full footer {
   top: clamp(24px, 4vw, 48px);
   right: clamp(24px, 4vw, 48px);
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
+  align-items: flex-end;
   gap: 12px;
   margin: 0;
   width: auto;
   background: color-mix(in srgb, var(--bg) 92%, transparent);
-  border-radius: 999px;
-  padding: 6px;
+  border-radius: 16px;
+  padding: 10px;
   box-shadow: 0 6px 24px rgba(0, 0, 0, 0.12);
   backdrop-filter: blur(6px);
 }
@@ -76,11 +77,25 @@ body.layout-full footer button {
 }
 
 body.layout-full .footer-secondary {
+  display: flex;
   gap: 10px;
 }
 
 body.layout-full .footer-secondary button {
   flex: 0 0 auto;
+}
+.default-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.default-toggle input {
+  width: 16px;
+  height: 16px;
+  margin: 0;
 }
 
 body.layout-full #expand-button {
@@ -113,11 +128,17 @@ header {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
 }
 
-.search-field {
+.search-wrapper {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 10px;
+  width: 100%;
+}
+
+.search-field {
+  display: flex;
+  align-items: center;
   padding: 8px 12px;
   border-radius: 12px;
   border: 1px solid rgba(0, 0, 0, 0.08);
@@ -126,6 +147,10 @@ header {
 }
 
 .search-field svg {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.search-wrapper > svg {
   color: rgba(0, 0, 0, 0.5);
 }
 
@@ -140,6 +165,36 @@ header {
 
 .search-field input::placeholder {
   color: rgba(0, 0, 0, 0.45);
+}
+
+.search-clear {
+  border: none;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.85);
+  font-size: 16px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease;
+}
+
+.search-clear:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.search-clear:focus-visible {
+  outline: 3px solid rgba(0, 96, 223, 0.35);
+  outline-offset: 2px;
+}
+
+.search-clear:disabled {
+  opacity: 0.35;
+  cursor: default;
+  background: transparent;
 }
 
 .search-field:focus-within {

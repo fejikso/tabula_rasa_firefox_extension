@@ -14,6 +14,8 @@ const sortOldestButton = document.getElementById("sort-oldest");
 const expandButton = document.getElementById("expand-button");
 const togglePinnedButton = document.getElementById("toggle-pinned");
 const searchInput = document.getElementById("search-tabs");
+const searchClearButton = document.getElementById("search-clear");
+const defaultFullViewCheckbox = document.getElementById("default-full-view");
 const pathName = window.location.pathname || "";
 const isPopupView = pathName.endsWith("/popup.html") || pathName.endsWith("popup.html");
 const isFullView = pathName.endsWith("/full.html") || pathName.endsWith("full.html");
@@ -22,8 +24,10 @@ const selectedTabIds = new Set();
 let tabCache = [];
 let sortMode = "window";
 const SORT_MODE_KEY = "tabulaRasa.sortMode";
+const LAUNCH_FULL_VIEW_KEY = "tabulaRasa.launchFullView";
 let hidePinned = true;
 let searchQuery = "";
+let launchFullViewByDefault = false;
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
   dateStyle: "medium",
@@ -92,10 +96,13 @@ function focusFirstTabItem() {
 
 async function restoreSortMode() {
   try {
-    const stored = await browser.storage.local.get(SORT_MODE_KEY);
+    const stored = await browser.storage.local.get([SORT_MODE_KEY, LAUNCH_FULL_VIEW_KEY]);
     const savedMode = stored?.[SORT_MODE_KEY];
     if (isValidSortMode(savedMode)) {
       sortMode = savedMode;
+    }
+    if (typeof stored?.[LAUNCH_FULL_VIEW_KEY] === "boolean") {
+      launchFullViewByDefault = stored[LAUNCH_FULL_VIEW_KEY];
     }
   } catch (error) {
     console.error("Failed to restore sort mode preference:", error);
@@ -137,6 +144,22 @@ function updatePinnedToggleState() {
   togglePinnedButton.classList.toggle("active", hidePinned);
   togglePinnedButton.setAttribute("aria-pressed", String(hidePinned));
   togglePinnedButton.textContent = hidePinned ? "Hide pinned" : "Show pinned";
+}
+
+function updateDefaultLaunchCheckbox() {
+  if (!defaultFullViewCheckbox) {
+    return;
+  }
+  defaultFullViewCheckbox.checked = launchFullViewByDefault;
+}
+
+function updateSearchClearVisibility() {
+  if (!searchClearButton) {
+    return;
+  }
+  const hasQuery = (searchInput?.value?.length ?? 0) > 0;
+  searchClearButton.disabled = !hasQuery;
+  searchClearButton.setAttribute("aria-disabled", String(!hasQuery));
 }
 
 function handleCheckboxChange(tabId, checkbox) {
@@ -421,6 +444,46 @@ if (searchInput) {
   searchInput.addEventListener("input", () => {
     searchQuery = searchInput.value ?? "";
     renderTabs(getVisibleTabs());
+    updateSearchClearVisibility();
+  });
+  searchInput.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      if (searchInput.value) {
+        searchInput.value = "";
+        searchQuery = "";
+        renderTabs(getVisibleTabs());
+        updateSearchClearVisibility();
+      } else {
+        searchInput.blur();
+      }
+      event.preventDefault();
+    }
+  });
+}
+
+if (searchClearButton) {
+if (defaultFullViewCheckbox) {
+  defaultFullViewCheckbox.addEventListener("change", async () => {
+    launchFullViewByDefault = defaultFullViewCheckbox.checked;
+    try {
+      await browser.storage.local.set({
+        [LAUNCH_FULL_VIEW_KEY]: launchFullViewByDefault,
+      });
+    } catch (error) {
+      console.error("Failed to save default launch preference:", error);
+    }
+  });
+  updateDefaultLaunchCheckbox();
+}
+  searchClearButton.addEventListener("click", () => {
+    if (!searchInput) {
+      return;
+    }
+    searchInput.value = "";
+    searchQuery = "";
+    renderTabs(getVisibleTabs());
+    updateSearchClearVisibility();
+    searchInput.focus();
   });
 }
 
@@ -458,6 +521,12 @@ if (expandButton) {
 async function init() {
   await restoreSortMode();
   updateSortButtonState();
+  updateDefaultLaunchCheckbox();
+  if (isPopupView && launchFullViewByDefault) {
+    await openFullView();
+    return;
+  }
+  updateSearchClearVisibility();
   await loadTabs();
 }
 

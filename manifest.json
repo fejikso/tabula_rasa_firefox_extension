@@ -21,7 +21,7 @@
   "commands": {
     "_execute_action": {
       "suggested_key": {
-        "default": "F4"
+        "default": "F8"
       },
       "description": "Open Tabula Rasa"
     }

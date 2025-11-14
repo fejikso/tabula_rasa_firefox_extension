@@ -32,10 +32,8 @@
             />
           </svg>
         </button>
-      </div>
-      <p>Select the tabs you’re ready to close.</p>
-      <label class="search-field">
-        <span class="sr-only">Filter tabs</span>
+      </div>      
+      <div class="search-wrapper">
         <svg
           width="16"
           height="16"
@@ -48,15 +46,27 @@
             fill="currentColor"
           />
         </svg>
-        <input
-          id="search-tabs"
-          type="search"
-          placeholder="Search tabs (press S)"
-          autocomplete="off"
-          spellcheck="false"
-          inputmode="search"
-        />
-      </label>
+        <label class="search-field">
+          <span class="sr-only">Filter tabs</span>
+          <input
+            id="search-tabs"
+            type="search"
+            placeholder="Search tabs (press S)"
+            autocomplete="off"
+            spellcheck="false"
+            inputmode="search"
+          />
+        </label>
+        <button
+          id="search-clear"
+          type="button"
+          class="search-clear"
+          aria-label="Clear search"
+          title="Clear search (Esc)"
+        >
+          &#x2BBE;
+        </button>
+      </div>
     </header>
     <main>
       <div class="sort-controls" role="group" aria-label="Sort tabs">
@@ -94,13 +104,20 @@
     >
       <p class="about-title">Keyboard shortcuts</p>
       <ul class="about-list">
-        <li><kbd>Space</kbd> toggle the current tab selection.</li>
-        <li><kbd>Ctrl</kbd>+<kbd>Enter</kbd> (or <kbd>⌘</kbd>+<kbd>Enter</kbd>) closes selected tabs.</li>
-        <li><kbd>J</kbd> moves to the tab below, <kbd>K</kbd> moves to the one above.</li>
-        <li><kbd>S</kbd> focuses the search box.</li>
+        <li><kbd>Space</kbd> toggles the focused tab selection.</li>
+        <li>
+          <kbd>Ctrl</kbd>+<kbd>Enter</kbd> (or <kbd>⌘</kbd>+<kbd>Enter</kbd>) closes all selected tabs.
+        </li>
+        <li><kbd>J</kbd> moves down the list, <kbd>K</kbd> moves up.</li>
+        <li><kbd>1</kbd>, <kbd>2</kbd>, <kbd>3</kbd> switch between window, recent, and oldest sorting.</li>
+        <li><kbd>S</kbd> focuses the search box; <kbd>Esc</kbd> clears it.</li>
+        <li><kbd>X</kbd> closes the focused tab item.</li>
+        <li>
+          <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>Click</kbd> on a tab row closes that tab instantly.
+        </li>
         <li><kbd>F</kbd> opens the full-page view (popup only).</li>
         <li><kbd>Q</kbd> closes the full-page view tab.</li>
-        <li><kbd>F4</kbd> opens Tabula Rasa from any page.</li>
+        <li><kbd>F8</kbd> opens Tabula Rasa from any page.</li>
       </ul>
       <p class="about-copy">Use the Hide pinned toggle to reveal pinned tabs when needed.</p>
       <button
