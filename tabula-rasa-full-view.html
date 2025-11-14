@@ -6,7 +6,7 @@
     <title>Tabula Rasa – Full View</title>
     <link rel="stylesheet" href="popup.css" />
   </head>
-  <body class="layout-full">
+  <body class="layout-full orientation-horizontal">
     <header>
       <div class="header-row">
         <div class="brand">
@@ -68,41 +68,49 @@
         </button>
       </div>
     </header>
-    <div class="controls-bar">
-      <div class="sort-controls" role="group" aria-label="Sort tabs">
-        <button
-          id="toggle-pinned"
-          type="button"
-          class="sort-button toggle-button active"
-          aria-pressed="true"
-        >
-          Hide pinned
-        </button>
-        <button id="sort-window" type="button" class="sort-button active">1 · Browser order</button>
-        <button id="sort-recent" type="button" class="sort-button">2 · Recent first</button>
-        <button id="sort-oldest" type="button" class="sort-button">3 · Oldest first</button>
-      </div>
-      <div class="selection-controls">
-        <button id="select-visible" type="button" class="selection-button">Select all</button>
-      </div>
+    <div class="full-view">
+      <aside class="sidebar-panel">
+        <div class="controls-bar">
+          <div class="sort-controls" role="group" aria-label="Sort tabs">
+            <button
+              id="toggle-pinned"
+              type="button"
+              class="sort-button toggle-button active"
+              aria-pressed="true"
+            >
+              Hide pinned
+            </button>
+            <button id="sort-window" type="button" class="sort-button active">1 · Browser order</button>
+            <button id="sort-recent" type="button" class="sort-button">2 · Recent first</button>
+            <button id="sort-oldest" type="button" class="sort-button">3 · Oldest first</button>
+          </div>
+          <div class="selection-controls">
+            <button id="select-visible" type="button" class="selection-button">Select all</button>
+          </div>
+        </div>
+        <section class="utility-panel">
+          <button id="close-selected" type="button" disabled>Close selected tabs</button>
+          <div class="footer-secondary">
+            <button id="hotkeys-button" type="button" class="secondary">Hotkeys</button>
+            <button id="tip-button" type="button" class="secondary">Tip</button>
+          </div>
+          <label class="default-toggle">
+            <input id="default-full-view" type="checkbox" />
+            <span>Always open Tabula Rasa in full view</span>
+          </label>
+          <label class="default-toggle orientation-toggle">
+            <input id="full-view-orientation" type="checkbox" />
+            <span>Use vertical layout</span>
+          </label>
+        </section>
+      </aside>
+      <main>
+        <div class="tab-scroll">
+          <section id="tab-container" aria-live="polite"></section>
+        </div>
+        <p id="empty-state" class="muted hidden">No tabs to show.</p>
+      </main>
     </div>
-    <main>
-      <div class="tab-scroll">
-        <section id="tab-container" aria-live="polite"></section>
-      </div>
-      <p id="empty-state" class="muted hidden">No tabs to show.</p>
-    </main>
-    <footer>
-      <button id="close-selected" type="button" disabled>Close selected tabs</button>      
-      <div class="footer-secondary">
-        <button id="hotkeys-button" type="button" class="secondary">Hotkeys</button>
-        <button id="tip-button" type="button" class="secondary">Tip</button>
-      </div>
-      <label class="default-toggle">
-        <input id="default-full-view" type="checkbox" />
-        <span>Always open Tabula Rasa in full view</span>
-      </label>
-    </footer>
 
     <aside
       id="hotkeys-panel"
@@ -115,21 +123,23 @@
     >
       <p class="about-title">Keyboard shortcuts</p>
       <ul class="about-list">
+        <li><kbd>F8</kbd> opens Tabula Rasa from any page.</li>
+        <li><kbd>S</kbd> focuses the search box; <kbd>Esc</kbd> clears it.</li>
+        <li><kbd>J</kbd> moves down the list, <kbd>K</kbd> moves up.</li>
+        <li><kbd>Enter</kbd> opens the focused tab.</li>
         <li><kbd>Space</kbd> toggles the focused tab selection.</li>
+        <li><kbd>X</kbd> closes the focused tab item.</li>
         <li>
           <kbd>Ctrl</kbd>+<kbd>Enter</kbd> (or <kbd>⌘</kbd>+<kbd>Enter</kbd>) closes all selected tabs.
         </li>
-        <li><kbd>J</kbd> moves down the list, <kbd>K</kbd> moves up.</li>
-        <li><kbd>1</kbd>, <kbd>2</kbd>, <kbd>3</kbd> switch between window, recent, and oldest sorting.</li>
-        <li><kbd>S</kbd> focuses the search box; <kbd>Esc</kbd> clears it.</li>
-        <li><kbd>Enter</kbd> opens the focused tab.</li>
-        <li><kbd>X</kbd> closes the focused tab item.</li>
         <li>
           <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>Click</kbd> on a tab row closes that tab instantly.
         </li>
+        <li><kbd>A</kbd> selects or clears all visible tabs.</li>
+        <li><kbd>1</kbd>, <kbd>2</kbd>, <kbd>3</kbd> switch between window, recent, and oldest sorting.</li>
+        <li><kbd>L</kbd> toggles between horizontal and vertical layouts.</li>
         <li><kbd>F</kbd> opens the full-page view (popup only).</li>
         <li><kbd>Q</kbd> closes the full-page view tab.</li>
-        <li><kbd>F8</kbd> opens Tabula Rasa from any page.</li>
       </ul>
       <p class="about-copy">Use the Hide pinned toggle to reveal pinned tabs when needed.</p>
       <button
@@ -159,12 +169,10 @@
         If you find this tool helpful and appreciate the dedicated work involved in its creation and upkeep, please consider showing your support to the author.
       </p>
       <p class="about-copy">
-        You can contribute a tip via
-        <a href="http://paypal.me/fejikso" target="_blank" rel="noopener noreferrer">paypal.me/fejikso</a>.
-      </p>
-      <p class="about-copy">
-        The developer can also be reached directly at
-        <a href="mailto:fcueto@gmail.com">fcueto@gmail.com</a>.
+        You can contribute a tip or send a message via
+        <a href="https://buymeacoffee.com/fejikso" target="_blank" rel="noopener noreferrer"
+          >buymeacoffee.com/fejikso</a
+        >.
       </p>
       <button
         id="tip-close"

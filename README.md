@@ -30,18 +30,19 @@ You can switch between them at any time; both share the same filters, selections
 
 | Shortcut | Action |
 | --- | --- |
-| **Space** | Toggle the focused tab’s checkbox. |
-| **Enter** | Jump to the focused tab in Firefox. |
-| **X** | Close the focused tab item. |
-| **Ctrl/Cmd + Click** | Close the clicked tab instantly. |
-| **Ctrl/Cmd + Enter** | Close all selected tabs. |
+| **F8** | Launch Tabula Rasa from anywhere. |
+| **S** / **Esc** | Focus the search box / clear it. |
 | **J / K** | Move focus down / up the list. |
+| **Enter** | Jump to the focused tab in Firefox. |
+| **Space** | Toggle the focused tab’s checkbox. |
+| **X** | Close the focused tab item. |
+| **Ctrl/Cmd + Enter** | Close all selected tabs. |
+| **Ctrl/Cmd + Click** | Close the clicked tab instantly. |
+| **A** | Select or clear all visible tabs. |
 | **1 / 2 / 3** | Switch sorting: browser / recent / oldest. |
-| **S** | Focus the search box. |
-| **Esc** | Clear the search field (or exit it if already empty). |
+| **L** | Toggle between horizontal and vertical full-view layouts. |
 | **F** | Open the full-page view (when in the popup). |
 | **Q** | Close the full-page view tab. |
-| **F8** | Launch Tabula Rasa from anywhere. |
 
 You can revisit these at any time via the **Hotkeys** button.
 
@@ -51,8 +52,22 @@ You can revisit these at any time via the **Hotkeys** button.
 
 - Need to show pinned tabs? Toggle **Hide pinned** at the top of the list.  
 - Sorting and view preferences persist automatically between sessions.  
-- The **Tip** button (or [paypal.me/fejikso](http://paypal.me/fejikso)) helps support ongoing development.  
-- Found a bug or have a feature request? Open an issue on the project repo or email <fcueto@gmail.com>.
+- The **Tip** button (or [buymeacoffee.com/fejikso](https://buymeacoffee.com/fejikso)) helps support ongoing development.  
+- Found a bug or have a feature request? Open an issue on the project repo or send a message via Buy Me a Coffee.
+
+---
+
+## Customize the F8 Shortcut
+
+Firefox lets you remap an extension shortcut with `about:config`:
+
+1. Open a new tab and visit `about:config`, then accept the warning prompt.
+2. Search for `extensions.webextensions.commands`.
+3. Locate the preference whose name includes **tabula-rasa** (its value looks like `{"_execute_action":{"shortcut":"F8"}}`).
+4. Edit the value and change the `shortcut` string to the key combo you prefer (e.g. `Ctrl+Shift+F`), then confirm.
+5. Reload the extension (disable/enable it from **about:addons**) if the new shortcut does not take effect immediately.
+
+You can revert at any time by using the Reset action on the same preference.
 
 ---
 

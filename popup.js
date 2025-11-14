@@ -17,6 +17,7 @@ const searchInput = document.getElementById("search-tabs");
 const searchClearButton = document.getElementById("search-clear");
 const selectVisibleButton = document.getElementById("select-visible");
 const defaultFullViewCheckbox = document.getElementById("default-full-view");
+const orientationToggle = document.getElementById("full-view-orientation");
 const pathName = window.location.pathname || "";
 const FULL_VIEW_FILE = "tabula-rasa-full-view.html";
 const isPopupView = pathName.endsWith("/popup.html") || pathName.endsWith("popup.html");
@@ -27,11 +28,15 @@ let tabCache = [];
 let sortMode = "window";
 const SORT_MODE_KEY = "tabulaRasa.sortMode";
 const LAUNCH_FULL_VIEW_KEY = "tabulaRasa.launchFullView";
+const FULL_VIEW_ORIENTATION_KEY = "tabulaRasa.fullViewOrientation";
+const ORIENTATION_HORIZONTAL = "horizontal";
+const ORIENTATION_VERTICAL = "vertical";
 let hidePinned = true;
 let searchQuery = "";
 let launchFullViewByDefault = false;
 let activeTabIdFocusTarget = null;
 let shouldFocusActiveTab = false;
+let fullViewOrientation = ORIENTATION_HORIZONTAL;
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
   dateStyle: "medium",
@@ -89,10 +94,68 @@ function isValidSortMode(mode) {
   return mode === "window" || mode === "recent" || mode === "oldest";
 }
 
+function focusElement(element, { preventScroll = false } = {}) {
+  if (!element || typeof element.focus !== "function") {
+    return;
+  }
+  if (preventScroll) {
+    try {
+      element.focus({ preventScroll: true });
+      return;
+    } catch (error) {
+      // Fallback to default focus if preventScroll option is unsupported.
+    }
+  }
+  element.focus();
+}
+
+function isValidOrientation(mode) {
+  return mode === ORIENTATION_HORIZONTAL || mode === ORIENTATION_VERTICAL;
+}
+
+function applyFullViewOrientation(mode) {
+  if (!isValidOrientation(mode)) {
+    return;
+  }
+  fullViewOrientation = mode;
+  if (!isFullView) {
+    return;
+  }
+  const body = document.body;
+  if (body) {
+    body.classList.toggle("orientation-horizontal", mode === ORIENTATION_HORIZONTAL);
+    body.classList.toggle("orientation-vertical", mode === ORIENTATION_VERTICAL);
+  }
+  if (orientationToggle) {
+    const isVertical = mode === ORIENTATION_VERTICAL;
+    if (orientationToggle.checked !== isVertical) {
+      orientationToggle.checked = isVertical;
+    }
+  }
+}
+
+async function setFullViewOrientation(mode, { persist = false } = {}) {
+  if (!isValidOrientation(mode)) {
+    return;
+  }
+  const previous = fullViewOrientation;
+  applyFullViewOrientation(mode);
+  if (!persist || mode === previous) {
+    return;
+  }
+  try {
+    await browser.storage.local.set({
+      [FULL_VIEW_ORIENTATION_KEY]: mode,
+    });
+  } catch (error) {
+    console.error("Failed to save full view orientation preference:", error);
+  }
+}
+
 function focusFirstTabItem() {
   const firstItem = tabContainer.querySelector(".tab-item");
   if (firstItem) {
-    firstItem.focus();
+    focusElement(firstItem, { preventScroll: isFullView });
     return true;
   }
   return false;
@@ -100,13 +163,23 @@ function focusFirstTabItem() {
 
 async function restoreSortMode() {
   try {
-    const stored = await browser.storage.local.get([SORT_MODE_KEY, LAUNCH_FULL_VIEW_KEY]);
+    const stored = await browser.storage.local.get([
+      SORT_MODE_KEY,
+      LAUNCH_FULL_VIEW_KEY,
+      FULL_VIEW_ORIENTATION_KEY,
+    ]);
     const savedMode = stored?.[SORT_MODE_KEY];
     if (isValidSortMode(savedMode)) {
       sortMode = savedMode;
     }
     if (typeof stored?.[LAUNCH_FULL_VIEW_KEY] === "boolean") {
       launchFullViewByDefault = stored[LAUNCH_FULL_VIEW_KEY];
+    }
+    const savedOrientation = stored?.[FULL_VIEW_ORIENTATION_KEY];
+    if (isValidOrientation(savedOrientation)) {
+      applyFullViewOrientation(savedOrientation);
+    } else {
+      applyFullViewOrientation(ORIENTATION_HORIZONTAL);
     }
   } catch (error) {
     console.error("Failed to restore sort mode preference:", error);
@@ -179,6 +252,26 @@ function updateSelectVisibleButton(currentVisibleTabs) {
   selectVisibleButton.disabled = false;
   const allVisibleSelected = visibleTabs.every((tab) => selectedTabIds.has(tab.id));
   selectVisibleButton.textContent = allVisibleSelected ? "Clear selection" : "Select all";
+}
+
+function toggleVisibleSelection() {
+  const visibleTabs = getVisibleTabs();
+  if (visibleTabs.length === 0) {
+    return false;
+  }
+  const allVisibleSelected = visibleTabs.every((tab) => selectedTabIds.has(tab.id));
+  if (allVisibleSelected) {
+    visibleTabs.forEach((tab) => {
+      selectedTabIds.delete(tab.id);
+    });
+  } else {
+    visibleTabs.forEach((tab) => {
+      selectedTabIds.add(tab.id);
+    });
+  }
+  updateCloseButtonState();
+  renderTabs(visibleTabs);
+  return true;
 }
 
 function handleCheckboxChange(tabId, checkbox) {
@@ -308,10 +401,10 @@ function renderTabs(tabs) {
 
   if (targetItem) {
     requestAnimationFrame(() => {
-      if (focusSearchAfter) {
+      if (focusSearchAfter && !isFullView) {
         targetItem.scrollIntoView({ block: "center", inline: "nearest" });
       }
-      targetItem.focus();
+      focusElement(targetItem, { preventScroll: isFullView });
       if (focusSearchAfter) {
         requestAnimationFrame(() => {
           searchInput?.focus({ preventScroll: true });
@@ -326,7 +419,7 @@ function renderTabs(tabs) {
     requestAnimationFrame(() => {
       if (document.hasFocus()) {
         if (!focusFirstTabItem()) {
-          togglePinnedButton?.focus();
+          focusElement(togglePinnedButton, { preventScroll: isFullView });
         }
       }
     });
@@ -405,17 +498,26 @@ function setupPanel(button, panel, closeButton) {
   const togglePanel = (show) => {
     panel.classList.toggle("hidden", !show);
     panel.setAttribute("aria-hidden", String(!show));
+    button.setAttribute("aria-expanded", String(show));
     if (show) {
       panel.focus();
+    } else {
+      requestAnimationFrame(() => {
+        focusElement(button, { preventScroll: true });
+      });
     }
   };
-  button.addEventListener("click", () => togglePanel(true));
+  button.addEventListener("click", () => {
+    const willShow = panel.classList.contains("hidden");
+    togglePanel(willShow);
+  });
   closeButton.addEventListener("click", () => togglePanel(false));
   panel.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       togglePanel(false);
     }
   });
+  button.setAttribute("aria-expanded", String(!panel.classList.contains("hidden")));
 }
 
 setupPanel(hotkeysButton, hotkeysPanel, hotkeysCloseButton);
@@ -494,6 +596,13 @@ if (searchInput) {
     updateSearchClearVisibility();
   });
   searchInput.addEventListener("keydown", (event) => {
+    event.stopPropagation();
+    if (event.key === "Enter") {
+      if (focusFirstTabItem()) {
+        event.preventDefault();
+      }
+      return;
+    }
     if (event.key === "Escape") {
       if (searchInput.value) {
         searchInput.value = "";
@@ -523,22 +632,7 @@ if (searchClearButton) {
 
 if (selectVisibleButton) {
   selectVisibleButton.addEventListener("click", () => {
-    const visibleTabs = getVisibleTabs();
-    if (visibleTabs.length === 0) {
-      return;
-    }
-    const allVisibleSelected = visibleTabs.every((tab) => selectedTabIds.has(tab.id));
-    if (allVisibleSelected) {
-      visibleTabs.forEach((tab) => {
-        selectedTabIds.delete(tab.id);
-      });
-    } else {
-      visibleTabs.forEach((tab) => {
-        selectedTabIds.add(tab.id);
-      });
-    }
-    updateCloseButtonState();
-    renderTabs(getVisibleTabs());
+    toggleVisibleSelection();
   });
 }
 
@@ -554,6 +648,15 @@ if (defaultFullViewCheckbox) {
     }
   });
   updateDefaultLaunchCheckbox();
+}
+
+if (orientationToggle && isFullView) {
+  orientationToggle.addEventListener("change", () => {
+    const mode = orientationToggle.checked ? ORIENTATION_VERTICAL : ORIENTATION_HORIZONTAL;
+    setFullViewOrientation(mode, { persist: true }).catch((error) => {
+      console.error("Failed to toggle full view orientation from checkbox:", error);
+    });
+  });
 }
 
 async function openFullView() {
@@ -658,7 +761,34 @@ function handleGlobalKeydown(event) {
     return;
   }
 
-  if (!isModifier && !isEditableTarget) {
+  if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+    if (!closeButton.disabled) {
+      event.preventDefault();
+      closeButton.click();
+    }
+    return;
+  }
+
+  if (isEditableTarget) {
+    return;
+  }
+
+  if (!isModifier) {
+    if (event.key === "a" || event.key === "A") {
+      if (toggleVisibleSelection()) {
+        event.preventDefault();
+      }
+      return;
+    }
+    if ((event.key === "l" || event.key === "L") && isFullView) {
+      event.preventDefault();
+      const nextOrientation =
+        fullViewOrientation === ORIENTATION_VERTICAL ? ORIENTATION_HORIZONTAL : ORIENTATION_VERTICAL;
+      setFullViewOrientation(nextOrientation, { persist: true }).catch((error) => {
+        console.error("Failed to toggle full view orientation with hotkey:", error);
+      });
+      return;
+    }
     if (event.key === "Enter") {
       const activeItem = getActiveTabItem();
       if (activeItem) {
@@ -697,14 +827,6 @@ function handleGlobalKeydown(event) {
       }
       return;
     }
-  }
-
-  if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
-    if (!closeButton.disabled) {
-      event.preventDefault();
-      closeButton.click();
-    }
-    return;
   }
 
   const activeItem = getActiveTabItem();
