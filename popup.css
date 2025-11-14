@@ -48,29 +48,40 @@ body.layout-full .about {
   margin-inline: auto;
 }
 
-body.layout-full main {
-  overflow: visible;
-  padding-top: clamp(16px, 3vw, 32px);
+body.layout-full .controls-bar {
+  width: min(960px, 100%);
+  margin-inline: auto;
+}
+
+body.layout-full {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+body.layout-full header {
+  padding-block: clamp(12px, 2vw, 18px);
 }
 
 body.layout-full .controls-bar {
-  position: static;
-  background: transparent;
-  padding-block: 0;
+  padding-block: 6px;
+  border-bottom: 1px solid var(--border);
 }
 
-.full-sticky-top {
+body.layout-full main {
+  flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  min-height: 0;
+  padding-top: 0;
 }
 
-body.layout-full .full-sticky-top {
-  position: sticky;
-  top: 0;
-  z-index: 6;
-  background: var(--bg);
-  padding-block: clamp(12px, 2vw, 20px);
+body.layout-full .tab-scroll {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+  padding-top: 16px;
 }
 
 body.layout-full footer {
