@@ -29,6 +29,7 @@ let sortMode = "window";
 const SORT_MODE_KEY = "tabulaRasa.sortMode";
 const LAUNCH_FULL_VIEW_KEY = "tabulaRasa.launchFullView";
 const FULL_VIEW_ORIENTATION_KEY = "tabulaRasa.fullViewOrientation";
+const LAUNCH_HOTKEY_KEY = "tabulaRasa.launchHotkey";
 const ORIENTATION_HORIZONTAL = "horizontal";
 const ORIENTATION_VERTICAL = "vertical";
 let hidePinned = true;
@@ -161,6 +162,16 @@ function focusFirstTabItem() {
   return false;
 }
 
+function focusLastTabItem() {
+  const items = Array.from(tabContainer.querySelectorAll(".tab-item"));
+  const lastItem = items[items.length - 1];
+  if (lastItem) {
+    focusElement(lastItem, { preventScroll: isFullView });
+    return true;
+  }
+  return false;
+}
+
 async function restoreSortMode() {
   try {
     const stored = await browser.storage.local.get([
@@ -181,6 +192,7 @@ async function restoreSortMode() {
     } else {
       applyFullViewOrientation(ORIENTATION_HORIZONTAL);
     }
+    await loadOptions();
   } catch (error) {
     console.error("Failed to restore sort mode preference:", error);
   }
@@ -223,12 +235,6 @@ function updatePinnedToggleState() {
   togglePinnedButton.textContent = hidePinned ? "Hide pins" : "Show pins";
 }
 
-function updateDefaultLaunchCheckbox() {
-  if (!defaultFullViewCheckbox) {
-    return;
-  }
-  defaultFullViewCheckbox.checked = launchFullViewByDefault;
-}
 
 function updateSearchClearVisibility() {
   if (!searchClearButton) {
@@ -282,6 +288,13 @@ function handleCheckboxChange(tabId, checkbox) {
   }
   updateCloseButtonState();
   updateSelectVisibleButton();
+  // Focus the tab item so keyboard navigation works
+  const tabItem = checkbox.closest(".tab-item");
+  if (tabItem) {
+    requestAnimationFrame(() => {
+      focusElement(tabItem, { preventScroll: isFullView });
+    });
+  }
 }
 
 function removeClosedTabs(closedIds) {
@@ -638,26 +651,187 @@ if (selectVisibleButton) {
   });
 }
 
-if (defaultFullViewCheckbox) {
-  defaultFullViewCheckbox.addEventListener("change", async () => {
-    launchFullViewByDefault = defaultFullViewCheckbox.checked;
-    try {
-      await browser.storage.local.set({
-        [LAUNCH_FULL_VIEW_KEY]: launchFullViewByDefault,
+// Scalable Options System
+const OPTIONS_CONFIG = [
+  {
+    id: "launch-full-view",
+    label: "Always open Tabula Rasa in full view",
+    type: "checkbox",
+    storageKey: LAUNCH_FULL_VIEW_KEY,
+    defaultValue: false,
+    onChange: async (value) => {
+      launchFullViewByDefault = value;
+      try {
+        await browser.storage.local.set({
+          [LAUNCH_FULL_VIEW_KEY]: value,
+        });
+      } catch (error) {
+        console.error("Failed to save launch full view preference:", error);
+      }
+    },
+  },
+  {
+    id: "vertical-layout",
+    label: "Use vertical layout",
+    type: "checkbox",
+    storageKey: FULL_VIEW_ORIENTATION_KEY,
+    defaultValue: ORIENTATION_HORIZONTAL,
+    onChange: async (checked) => {
+      const mode = checked ? ORIENTATION_VERTICAL : ORIENTATION_HORIZONTAL;
+      setFullViewOrientation(mode, { persist: true }).catch((error) => {
+        console.error("Failed to save orientation preference:", error);
       });
-    } catch (error) {
-      console.error("Failed to save default launch preference:", error);
+    },
+    getValue: () => fullViewOrientation === ORIENTATION_VERTICAL,
+  },
+  {
+    id: "launch-hotkey",
+    label: "Launch hotkey",
+    type: "select",
+    storageKey: LAUNCH_HOTKEY_KEY,
+    defaultValue: "F8",
+    options: [
+      { value: "F8", label: "F8" },
+      { value: "Ctrl+Comma", label: "Ctrl+Comma" },
+      { value: "Ctrl+Period", label: "Ctrl+Period" },
+      { value: "Alt+Shift+T", label: "Alt+Shift+T" },
+    ],
+    onChange: async (value) => {
+      try {
+        await browser.commands.update({
+          name: "_execute_action",
+          shortcut: value,
+        });
+        await browser.storage.local.set({
+          [LAUNCH_HOTKEY_KEY]: value,
+        });
+      } catch (error) {
+        console.error("Failed to update launch hotkey:", error);
+      }
+    },
+  },
+];
+
+const optionsContainer = document.getElementById("options-container");
+const optionsButton = document.getElementById("options-button");
+const optionsPanel = document.getElementById("options-panel");
+const optionsCloseButton = document.getElementById("options-close");
+
+async function loadOptions() {
+  try {
+    const stored = await browser.storage.local.get(
+      OPTIONS_CONFIG.map((opt) => opt.storageKey)
+    );
+
+    OPTIONS_CONFIG.forEach((option) => {
+      const storedValue = stored[option.storageKey];
+      if (storedValue !== undefined) {
+        if (option.type === "checkbox") {
+          if (option.id === "vertical-layout") {
+            const mode = storedValue === ORIENTATION_VERTICAL;
+            if (mode !== (fullViewOrientation === ORIENTATION_VERTICAL)) {
+              applyFullViewOrientation(storedValue);
+            }
+          } else if (option.id === "launch-full-view") {
+            launchFullViewByDefault = storedValue;
+          }
+        } else if (option.type === "select" && option.id === "launch-hotkey") {
+          const hotkey = storedValue || option.defaultValue;
+          browser.commands.update({
+            name: "_execute_action",
+            shortcut: hotkey,
+          }).catch((error) => {
+            console.error("Failed to restore launch hotkey:", error);
+          });
+        }
+      }
+    });
+
+    // Render options with restored values
+    if (optionsContainer) {
+      optionsContainer.innerHTML = "";
+      OPTIONS_CONFIG.forEach((option) => {
+        const optionItem = document.createElement("div");
+        optionItem.className = "option-item";
+        optionItem.style.marginBottom = "16px";
+
+        const label = document.createElement("label");
+        label.className = "default-toggle";
+        label.style.display = "flex";
+        label.style.alignItems = "center";
+        label.style.gap = "8px";
+        label.style.cursor = "pointer";
+
+        if (option.type === "checkbox") {
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.id = option.id;
+          const storedValue = stored[option.storageKey];
+          checkbox.checked = option.getValue
+            ? option.getValue()
+            : storedValue !== undefined
+            ? storedValue
+            : option.defaultValue;
+
+          checkbox.addEventListener("change", () => {
+            option.onChange(checkbox.checked);
+          });
+
+          const span = document.createElement("span");
+          span.textContent = option.label;
+
+          label.appendChild(checkbox);
+          label.appendChild(span);
+        } else if (option.type === "select") {
+          const span = document.createElement("span");
+          span.textContent = option.label;
+          span.style.marginRight = "8px";
+
+          const select = document.createElement("select");
+          select.id = option.id;
+          select.style.marginLeft = "auto";
+          select.style.padding = "4px 8px";
+          select.style.borderRadius = "4px";
+          select.style.border = "1px solid var(--border)";
+
+          option.options.forEach((opt) => {
+            const optionEl = document.createElement("option");
+            optionEl.value = opt.value;
+            optionEl.textContent = opt.label;
+            select.appendChild(optionEl);
+          });
+
+          const storedValue = stored[option.storageKey];
+          select.value = storedValue !== undefined ? storedValue : option.defaultValue;
+
+          select.addEventListener("change", () => {
+            option.onChange(select.value);
+          });
+
+          label.appendChild(span);
+          label.appendChild(select);
+        }
+
+        optionItem.appendChild(label);
+        optionsContainer.appendChild(optionItem);
+      });
     }
-  });
-  updateDefaultLaunchCheckbox();
+  } catch (error) {
+    console.error("Failed to load options:", error);
+  }
 }
 
-if (orientationToggle && isFullView) {
-  orientationToggle.addEventListener("change", () => {
-    const mode = orientationToggle.checked ? ORIENTATION_VERTICAL : ORIENTATION_HORIZONTAL;
-    setFullViewOrientation(mode, { persist: true }).catch((error) => {
-      console.error("Failed to toggle full view orientation from checkbox:", error);
-    });
+// Options panel setup
+if (optionsButton && optionsPanel && optionsCloseButton) {
+  setupPanel(optionsButton, optionsPanel, optionsCloseButton);
+  // Load options when panel opens
+  optionsButton.addEventListener("click", () => {
+    if (optionsPanel.classList.contains("hidden")) {
+      // Panel is about to open, load options
+      requestAnimationFrame(() => {
+        loadOptions();
+      });
+    }
   });
 }
 
@@ -711,7 +885,6 @@ if (expandButton) {
 async function init() {
   await restoreSortMode();
   updateSortButtonState();
-  updateDefaultLaunchCheckbox();
   if (isPopupView && launchFullViewByDefault) {
     await openFullView();
     return;
@@ -738,6 +911,14 @@ function handleGlobalKeydown(event) {
     if (!isEditableTarget && hotkeysButton) {
       event.preventDefault();
       hotkeysButton.click();
+    }
+    return;
+  }
+
+  if (!isModifier && (event.key === "o" || event.key === "O")) {
+    if (!isEditableTarget && optionsButton) {
+      event.preventDefault();
+      optionsButton.click();
     }
     return;
   }
@@ -856,6 +1037,19 @@ function handleGlobalKeydown(event) {
       if (focusFirstTabItem()) {
         event.preventDefault();
       }
+      return;
+    }
+    if (event.key === "Home" && !isModifier) {
+      if (focusFirstTabItem()) {
+        event.preventDefault();
+      }
+      return;
+    }
+    if (event.key === "End" && !isModifier) {
+      if (focusLastTabItem()) {
+        event.preventDefault();
+      }
+      return;
     }
     return;
   }
@@ -891,6 +1085,21 @@ function handleGlobalKeydown(event) {
   ) {
     focusRelativeItem(activeItem, -1);
     event.preventDefault();
+    return;
+  }
+
+  if (event.key === "Home" && !isModifier) {
+    if (focusFirstTabItem()) {
+      event.preventDefault();
+    }
+    return;
+  }
+
+  if (event.key === "End" && !isModifier) {
+    if (focusLastTabItem()) {
+      event.preventDefault();
+    }
+    return;
   }
 }
 

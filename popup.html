@@ -145,6 +145,14 @@
       >
         Hotkeys
       </button>
+      <button
+        id="options-button"
+        type="button"
+        class="sort-button footer-button"
+        title="Open options (O)"
+      >
+        Options
+      </button>
       <button id="tip-button" type="button" class="sort-button footer-button" title="Support the author">
         Tip
       </button>
@@ -160,6 +168,9 @@
       aria-hidden="true"
     >
       <p class="about-title">Keyboard shortcuts</p>
+      <p class="about-copy">
+        While the search box has focus, letter shortcuts type into it. Press Enter once to move focus to the tab list so these hotkeys work.
+      </p>
       <ul class="about-list">
         <li><kbd>F8</kbd> opens Tabula Rasa from any page.</li>
         <li><kbd>S</kbd> focuses the search box; <kbd>Esc</kbd> clears it.</li>
@@ -174,6 +185,7 @@
           <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>Click</kbd> on a tab row closes that tab instantly.
         </li>
         <li><kbd>?</kbd> opens/closes the hotkeys panel.</li>
+        <li><kbd>O</kbd> opens/closes the options panel.</li>
         <li><kbd>P</kbd> hides or shows pinned tabs.</li>
         <li><kbd>A</kbd> selects or clears all visible tabs.</li>
         <li><kbd>1</kbd>, <kbd>2</kbd>, <kbd>3</kbd> switch between window, recent, and oldest sorting.</li>
@@ -216,6 +228,27 @@
       </p>
       <button
         id="tip-close"
+        type="button"
+        class="secondary circle-close"
+        aria-label="Close dialog"
+      >
+        &#11199;
+      </button>
+    </aside>
+
+    <aside
+      id="options-panel"
+      class="about hidden"
+      role="dialog"
+      aria-modal="false"
+      aria-label="Options"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <p class="about-title">Options</p>
+      <div id="options-container"></div>
+      <button
+        id="options-close"
         type="button"
         class="secondary circle-close"
         aria-label="Close dialog"

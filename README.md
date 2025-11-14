@@ -28,6 +28,8 @@ You can switch between them at any time; both share the same filters, selections
 
 ## Keyboard Shortcuts
 
+> While the search field has focus, letter shortcuts just type into it. Press Enter once to return focus to the tab list so the shortcuts below work.
+
 | Shortcut | Action |
 | --- | --- |
 | **F8** | Launch Tabula Rasa from anywhere. |
@@ -39,6 +41,7 @@ You can switch between them at any time; both share the same filters, selections
 | **Ctrl/Cmd + Click** | Close the clicked tab instantly. |
 | **Ctrl/Cmd + Enter** | Close all selected tabs. |
 | **?** | Open/close the hotkeys dialog. |
+| **O** | Open/close the options panel. |
 | **P** | Hide or show pinned tabs. |
 | **A** | Select or clear all visible tabs. |
 | **1 / 2 / 3** | Switch sorting: browser / recent / oldest. |
@@ -54,14 +57,27 @@ You can revisit these at any time via the **Hotkeys** button.
 
 - Need to show pinned tabs? Toggle **Hide pins** at the top of the list.  
 - Sorting and view preferences persist automatically between sessions.  
+- Customize your experience via the **Options** panel (press **O** or click the Options button).
 - The **Tip** button (or [buymeacoffee.com/fejikso](https://buymeacoffee.com/fejikso)) helps support ongoing development.  
 - Found a bug or have a feature request? Open an issue on the project repo or send a message via Buy Me a Coffee.
 
 ---
 
-## Customize the F8 Shortcut
+## Options Panel
 
-Firefox lets you remap an extension shortcut with `about:config`:
+The **Options** panel (accessible via the **O** key or the Options button) lets you customize:
+
+- **Always open in full view**: Open Tabula Rasa in full-page view by default.
+- **Vertical layout**: Use vertical split layout in full view (controls on top, tabs below).
+- **Launch hotkey**: Choose your preferred keyboard shortcut to launch Tabula Rasa (F8, Ctrl+Comma, Ctrl+Period, or Alt+Shift+T).
+
+All preferences are saved automatically and persist across sessions.
+
+---
+
+## Advanced: Customize Shortcuts via about:config
+
+If you need a shortcut not available in the Options panel, Firefox lets you remap extension shortcuts with `about:config`:
 
 1. Open a new tab and visit `about:config`, then accept the warning prompt.
 2. Search for `extensions.webextensions.commands`.
@@ -69,7 +85,7 @@ Firefox lets you remap an extension shortcut with `about:config`:
 4. Edit the value and change the `shortcut` string to the key combo you prefer (e.g. `Ctrl+Shift+F`), then confirm.
 5. Reload the extension (disable/enable it from **about:addons**) if the new shortcut does not take effect immediately.
 
-You can revert at any time by using the Reset action on the same preference.
+You can revert at any time by using the Reset action on the same preference, or change it back via the Options panel.
 
 ---
 
