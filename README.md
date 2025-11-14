@@ -1,113 +1,70 @@
-# Tabula Rasa
+# **Tabula Rasa: Keyboard-First Tab Navigator and Manager**
 
-Streamline how you review, sort, and close Firefox tabs. Tabula Rasa presents a fast, keyboard-friendly list of the tabs in your current window so you can decide what stays open and what goes. The project lives at [github.com/fejikso/tabula_rasa_firefox_extension](https://github.com/fejikso/tabula_rasa_firefox_extension).
+Tabula Rasa provides a **fast, distraction-free environment** for reviewing, sorting, and closing open tabs in your current window. Designed for power users, it minimizes mouse interaction, letting you manage your tab clutter with just a few keystrokes.  
+The core value is **low-latency tab control**: search, switch, sort, and batch-close tabs instantly—all **using only the keyboard**, eliminating the need for mouse interaction.
 
----
+## **🚀 Full Keyboard Workflow Example**
 
-## Quick Start
+Follow this step-by-step example to experience the core value of Tabula Rasa—managing your tabs without touching the mouse.
 
-1. Click the Tabula Rasa toolbar icon (popup view) or press **F8** (the default launch hotkey, which you can change in Options or customize further via the Advanced instructions below).  
-2. Filter tabs by typing in the search box – use **Esc** to clear the query.  
-3. Press **1 / 2 / 3** to switch between browser order, most recently used, or oldest tabs first.  
-4. Tick the tabs you want to close and hit **Ctrl/Cmd + Enter**, or click the ❌ next to any single tab to close it immediately.  
-5. Want the full-page layout by default? Open the full view and enable **“Always open Tabula Rasa in full view.”**
+1. **Launch:** Press **F8** (the default hotkey, which you can change in the Options panel).  
+2. **Filter/Focus:** Since the search box is focused by default (a configurable option), type a substring like "docs" to filter the list. Then press **Enter** to move the focus from the search box to the list of tabs.  
+3. **Navigate:** Use the **J** key to move focus down the list, and the **K** key to move focus up.  
+4. **Select Tabs to Close:** When focused on a tab you want to close later, press **Spacebar** to toggle its selection checkbox. Repeat this process for multiple tabs.  
+5. **Close Focused Tab:** If you immediately want to close the tab currently in focus, press **X**. The focus automatically shifts to the next tab.  
+6. **Switch to Tab:** Find a tab you want to switch to and continue working on. While it's in focus, press **Enter**. Tabula Rasa will close, and your browser will immediately jump to that tab.  
+7. **Batch Close:** After relaunching, if you have selected tabs remaining, press **Ctrl/Cmd \+ Enter** to close all selected tabs at once.  
+8. **Exit:** Press **Q** to exit Tabula Rasa (works in both popup and full views).
 
----
+## **⌨️ Comprehensive Keyboard Shortcuts**
 
-## Views at a Glance
-
-| Popup | Full View |
-| --- | --- |
-| Compact list for quick triage. | Spacious layout with URL + “last accessed” metadata. |
-| Toggle hidden pinned tabs on/off. | Fix the action buttons in the top-right corner. |
-| Launches from the toolbar icon. | Opened via F8 or by clicking **Open full page view**. |
-
-You can switch between them at any time; both share the same filters, selections, and preferences.
-
----
-
-## Keyboard Shortcuts
-
-> While the search field has focus, letter shortcuts just type into it. Press Enter once to return focus to the tab list so the shortcuts below work.
+Tabula Rasa is built around hotkeys. Once the tab list has focus (press **Enter** after searching), these shortcuts work:
 
 | Shortcut | Action |
-| --- | --- |
-| **Launch hotkey** | Launch Tabula Rasa from anywhere (default F8; configurable in Options—see Advanced section for fully custom shortcuts). |
-| **S** / **Esc** | Focus the search box / clear it. |
-| **Enter** | Open the focused tab. |
-| **Space** | Toggle the focused tab’s checkbox. |
-| **J / K** | Move focus down / up the list. |
-| **Ctrl/Cmd + J / K** | Jump to top / bottom of the list (like Home/End). |
-| **Home / End** | Jump to top / bottom of the list. |
+| :---- | :---- |
+| **Launch hotkey** | Opens Tabula Rasa (Default: **F8**). |
+| **S** / **Esc** | **S** focuses search / **Esc** clears search. |
+| **J / K** | Move focus **down** / **up** the list. |
+| **Ctrl/Cmd \+ J / K** | Jump to **top** / **bottom** of the list (like Home/End). |
+| **Enter** | **Switch to and open** the focused tab. |
+| **Space** | Toggle the focused tab’s selection checkbox. |
 | **X** | Close the focused tab item. |
-| **Ctrl/Cmd + Click** | Close the clicked tab instantly. |
-| **Ctrl/Cmd + Enter** | Close all selected tabs. |
-| **?** | Open/close the hotkeys dialog. |
-| **O** | Open/close the options panel. |
+| **Ctrl/Cmd \+ Enter** | Close all **selected** tabs. |
 | **P** | Hide or show pinned tabs. |
-| **A** | Select or clear all visible tabs. |
-| **1 / 2 / 3** | Switch sorting: browser / recent / oldest. |
-| **L** | Toggle between horizontal and vertical full-view layouts. |
-| **F** | Open the full-page view (when in the popup). |
+| **A** | Select or clear all **visible** tabs. |
+| **1 / 2 / 3** | Switch sorting: Browser / Recent / Oldest. |
+| **L** | Toggle horizontal/vertical layout (Full View only). |
 | **Q** | Close Tabula Rasa (popup or full view). |
 
-You can revisit these at any time via the **Hotkeys** button.
+## **👁️ Views at a Glance**
 
----
+Both views share the same filters and selections, ensuring a seamless experience when switching.
 
-## Tips & Support
+| Popup View | Full View |
+| :---- | :---- |
+| Quick, compact overlay for immediate navigation and closing. | Spacious layout showing **URL** and **Last Accessed** metadata. |
+| Launched via toolbar icon or **F8**. | Opened via **F8** or by clicking **Open full page view (F)**. |
 
-- Need to show pinned tabs? Toggle **Hide pins** at the top of the list.  
-- Sorting and view preferences persist automatically between sessions.  
-- Customize your experience via the **Options** panel (press **O** or click the Options button).
-- The **Tip** button (or [buymeacoffee.com/fejikso](https://buymeacoffee.com/fejikso)) helps support ongoing development.  
-- Found a bug or have a feature request? Open an issue on the project repo or send a message via Buy Me a Coffee.
+## **⚙️ Customization (Options Panel)**
 
----
+Access the **Options** panel (press **O** or click the button) to configure persistent preferences:
 
-## Options Panel
+* **Launch Hotkey:** Change the keyboard shortcut (e.g., F9, Ctrl+Comma).  
+* **Default View:** Always open in the full-page layout.  
+* **Layout:** Choose between horizontal or vertical split in full view.  
+* **Behavior:** Set defaults for hiding pinned tabs, confirming before close, and more.
 
-The **Options** panel (accessible via the **O** key or the Options button) lets you customize:
+### **Advanced Hotkey Configuration**
 
-- **Always open in full view**: Open Tabula Rasa in full-page view by default.
-- **Vertical layout**: Use vertical split layout in full view (controls on top, tabs below).
-- **Launch hotkey**: Choose your preferred keyboard shortcut to launch Tabula Rasa (F8, F9, Ctrl+Comma, Ctrl+Shift+Comma, Ctrl+Period, or Ctrl+Shift+Period).
+If the built-in hotkey options are insufficient, you can set a fully custom shortcut directly through Firefox’s Add-ons UI under **Keyboard Shortcuts**.
 
-All preferences are saved automatically and persist across sessions.
+## **❤️ Supporting the Author**
 
----
+Tabula Rasa is a **personal project** built and maintained by the developer during free time.  
+If this tool helps streamline your workflow and you appreciate the dedicated effort involved, please consider sending a thank you or a tip. Your support is instrumental in motivating new feature development and ongoing maintenance.  
+You can contribute a tip or send a message via the in-app Tip button or directly at:  
+buymeacoffee.com/fejikso.
 
-## Advanced: Customize Shortcuts via about:config
+## **📄 License**
 
-If you need a shortcut not available in the Options panel, Firefox lets you remap extension shortcuts with `about:config`. However, the **easier method** is to use Firefox's built-in UI:
-
-### Recommended: Use Firefox's UI
-
-1. Go to `about:addons` (or Tools → Add-ons and Themes).
-2. Find **Tabula Rasa** and click the gear icon (or "Manage").
-3. Click **Keyboard Shortcuts**.
-4. Change the shortcut for "Open Tabula Rasa" to your preferred key combination.
-
-### Alternative: Manual about:config Method
-
-If you prefer to edit preferences directly:
-
-1. Open a new tab and visit `about:config`, then accept the warning prompt.
-2. Search for `tabula` or `rasa` to find preferences related to the extension.
-3. If no results appear, you may need to find your extension ID first:
-   - Go to `about:debugging` → **This Firefox**.
-   - Find Tabula Rasa in the list and note its **Internal UUID** (extension ID).
-   - In `about:config`, search for that UUID or for `extensions.webextensions.commands`.
-4. Look for a preference whose name includes the extension ID or **tabula-rasa**. The preference value should be a JSON string like `{"_execute_action":{"shortcut":"F8"}}`.
-5. Double-click the preference to edit it, and change the `shortcut` value to your preferred key combo (e.g. `Ctrl+Shift+F`). The full JSON should look like `{"_execute_action":{"shortcut":"Ctrl+Shift+F"}}`.
-6. Reload the extension (disable/enable it from **about:addons**) if the new shortcut does not take effect immediately.
-
-**Note:** The preference may not exist until the extension has been installed and the command has been used at least once. If you can't find it, use the UI method above instead.
-
-You can revert at any time by using the Reset action on the same preference, or change it back via the Options panel or the Keyboard Shortcuts UI.
-
----
-
-## License
-
-Tabula Rasa is released under the GNU General Public License v3.0. See [LICENSE](LICENSE) for details.
+Tabula Rasa is released under the GNU General Public License v3.0.
