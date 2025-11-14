@@ -4,7 +4,8 @@ Tabula Rasa provides a fast way for navigating, searching, and closing open tabs
 
 The core value is **low-latency tab control**: search, switch, sort, and batch-close tabs instantly—all **using only the keyboard**, eliminating the need for mouse interaction.
 
-![Screenshot of Tabula Rasa popup filtering recipe tabs](media/screenshot_search.png)
+<!-- markdownlint-disable-next-line MD033 -->
+<img src="media/screenshot_search.png" alt="Screenshot of Tabula Rasa popup filtering recipe tabs" width="400">
 
 ## **🚀 Full Keyboard Workflow Example 1**
 
@@ -72,7 +73,7 @@ If the built-in hotkey options are insufficient, you can set a fully custom shor
 
 ## **📜 History**
 
-The name “Tabula Rasa” is a playful nod to browser **tabs** and the Latin phrase meaning “clean slate,” [tabula rasa](https://en.wiktionary.org/wiki/tabula_rasa). The project began as a quest for a better way to close lots of tabs quickly—wiping the slate clean—but during development it became clear the same keyboard-first interface was equally powerful for **searching** and **navigating** through every open tab. That broadened focus shaped the tool into the all-in-one tab triage and navigation experience it is today. 
+The name “Tabula Rasa” is a playful nod to browser **tabs** and the Latin phrase meaning “clean slate,” [tabula rasa](https://en.wiktionary.org/wiki/tabula_rasa). The project began as a quest for a better way to close lots of tabs quickly—wiping the slate clean—but during development it became clear the same keyboard-first interface was equally powerful for **searching** and **navigating** through every open tab. That broadened focus shaped the tool into the all-in-one tab triage and navigation experience it is today.
 
 ## **❤️ Supporting the Author**
 
