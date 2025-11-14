@@ -16,14 +16,14 @@ Follow this step-by-step example to experience the core value of Tabula Rasa—m
 7. **Batch Close:** After relaunching, if you have selected tabs remaining, press **Ctrl/Cmd \+ Enter** to close all selected tabs at once.  
 8. **Exit:** Press **Q** to exit Tabula Rasa (works in both popup and full views).
 
-## **🚀 Full Keyboard Workflow Example 1**
+## **🚀 Full Keyboard Workflow Example 2**
 
-1. Launch the app (default key: F8) 
-1. Press **S** to focus on the search bar (if you're not there already)   
-2. Write some string to be searched
+1. Launch the app (default key: F8)
+2. Press **S** to focus on the search bar (if you're not there already)
+3. Type a search query to filter the list.
 4. Press **Enter** to go to the tab list.
-5. Select the tab you want (using **J/K** to navigate)  
-6. Press **Enter** for the browser to refocus to that tab. 
+5. Select the tab you want (using **J/K** to navigate)
+6. Press **Enter** for the browser to refocus to that tab.
 
 ## **⌨️ Comprehensive Keyboard Shortcuts**
 
@@ -72,7 +72,7 @@ If the built-in hotkey options are insufficient, you can set a fully custom shor
 Tabula Rasa is a **personal project** built and maintained by the developer during free time.  
 If this tool helps streamline your workflow and you appreciate the dedicated effort involved, please consider sending a thank you or a tip. Your support is instrumental in motivating new feature development and ongoing maintenance.  
 You can contribute a tip or send a message via the in-app Tip button or directly at:  
-buymeacoffee.com/fejikso.
+[buymeacoffee.com/fejikso](https://buymeacoffee.com/fejikso).
 
 ## **📄 License**
 
