@@ -24,7 +24,7 @@ body {
   font: 14px/1.4 "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
   margin: 0;
   min-width: 320px;
-  max-width: 380px;
+  max-width: 420px;
   min-height: 600px;
   max-height: 720px;
   display: flex;
@@ -344,31 +344,64 @@ main {
   z-index: 5;
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: flex-end;
   gap: 6px;
   padding-block: 4px;
   background: var(--bg);
 }
 
 .sort-controls {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: 6px;
-  padding-bottom: 2px;
+  align-items: flex-end;
   flex: 1 1 0;
   min-width: 0;
 }
 
-body.layout-full .sort-controls {
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+.ordering-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.control-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 4px;
+  min-width: 0;
+}
+
+.ordering-title {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.ordering-buttons {
+  display: flex;
+  gap: 4px;
+}
+
+.ordering-button {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 .selection-controls {
   display: flex;
+  flex-direction: column;
   justify-content: flex-end;
+  align-items: flex-end;
   flex: 0 0 auto;
   min-width: max-content;
-  margin-bottom: 0;
+  align-self: flex-end;
+  gap: 4px;
 }
 
 .selection-button {
@@ -391,10 +424,6 @@ body.layout-full .sort-controls {
   background: rgba(0, 0, 0, 0.04);
   color: rgba(0, 0, 0, 0.4);
   cursor: not-allowed;
-}
-
-body.layout-full .selection-controls {
-  justify-content: flex-end;
 }
 
 @media (max-width: 720px) {
@@ -661,13 +690,6 @@ button:disabled {
   color: var(--accent);
 }
 
-.toggle-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
-
 .toggle-button::before {
   content: "";
   width: 10px;
@@ -678,9 +700,11 @@ button:disabled {
   transition: background 120ms ease, border-color 120ms ease;
 }
 
-.toggle-button.active::before {
-  background: currentColor;
-  border-color: currentColor;
+.toggle-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
 .sort-button:disabled {
@@ -688,12 +712,39 @@ button:disabled {
   color: rgba(0, 0, 0, 0.4);
 }
 
-body:not(.layout-full) .sort-button {
-  padding-inline: 6px;
+body:not(.layout-full) .sort-button,
+body:not(.layout-full) .selection-button {
+  padding: 4px 8px;
+  min-height: 28px;
+  font-size: 12px;
 }
 
-body:not(.layout-full) .selection-button {
-  padding-inline: 10px;
+body.layout-full .sort-button,
+body.layout-full .selection-button {
+  padding: 8px 14px;
+  min-height: 34px;
+  font-size: 13px;
+}
+
+body.layout-full .ordering-row {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+body.layout-full .control-bar-bottom {
+  width: 100%;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+body.layout-full .selection-controls {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
 }
 
 .icon-button {

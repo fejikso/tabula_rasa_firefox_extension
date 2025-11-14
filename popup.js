@@ -220,7 +220,7 @@ function updatePinnedToggleState() {
   }
   togglePinnedButton.classList.toggle("active", hidePinned);
   togglePinnedButton.setAttribute("aria-pressed", String(hidePinned));
-  togglePinnedButton.textContent = hidePinned ? "Hide pinned" : "Show pinned";
+  togglePinnedButton.textContent = hidePinned ? "Hide pins" : "Show pins";
 }
 
 function updateDefaultLaunchCheckbox() {
@@ -319,9 +319,11 @@ function renderTabs(tabs) {
     }
     item.tabIndex = 0;
 
-    const displayTitle = tab.title?.trim() || tab.url || "Untitled tab";
+    const rawTitle = tab.title?.trim() || tab.url || "Untitled tab";
+    const pinPrefix = tab.pinned ? "📌 " : "";
+    const displayTitle = `${pinPrefix}${rawTitle}`;
     titleButton.textContent = displayTitle;
-    titleButton.title = displayTitle;
+    titleButton.title = rawTitle;
     checkbox.checked = selectedTabIds.has(tab.id);
 
     checkbox.addEventListener("change", () => handleCheckboxChange(tab.id, checkbox));
@@ -731,6 +733,22 @@ function handleGlobalKeydown(event) {
     tagName === "input" ||
     tagName === "textarea" ||
     tagName === "select";
+
+  if (event.key === "?") {
+    if (!isEditableTarget && hotkeysButton) {
+      event.preventDefault();
+      hotkeysButton.click();
+    }
+    return;
+  }
+
+  if (!isModifier && (event.key === "p" || event.key === "P")) {
+    if (!isEditableTarget && togglePinnedButton) {
+      event.preventDefault();
+      togglePinnedButton.click();
+    }
+    return;
+  }
 
   if (!isModifier && (event.key === "f" || event.key === "F")) {
     if (!isEditableTarget && isPopupView) {

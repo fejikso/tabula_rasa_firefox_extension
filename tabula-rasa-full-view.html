@@ -51,7 +51,7 @@
           <input
             id="search-tabs"
             type="search"
-            placeholder="Search tabs (press S)"
+            placeholder="Search. Press ENTER when done, ESC to clear"
             autocomplete="off"
             spellcheck="false"
             inputmode="search"
@@ -71,27 +71,29 @@
     <div class="full-view">
       <aside class="sidebar-panel">
         <div class="controls-bar">
-          <div class="sort-controls" role="group" aria-label="Sort tabs">
+          <div class="sort-controls ordering-row" role="group" aria-label="Sort tabs">
+            <button id="sort-window" type="button" class="sort-button ordering-button active">(1) Browser</button>
+            <button id="sort-recent" type="button" class="sort-button ordering-button">(2) Newest</button>
+            <button id="sort-oldest" type="button" class="sort-button ordering-button">(3) Oldest</button>
+          </div>
+          <div class="control-bar-bottom">
             <button
               id="toggle-pinned"
               type="button"
               class="sort-button toggle-button active"
               aria-pressed="true"
             >
-              Hide pinned
+              Hide pins
             </button>
-            <button id="sort-window" type="button" class="sort-button active">1 · Browser order</button>
-            <button id="sort-recent" type="button" class="sort-button">2 · Recent first</button>
-            <button id="sort-oldest" type="button" class="sort-button">3 · Oldest first</button>
-          </div>
-          <div class="selection-controls">
-            <button id="select-visible" type="button" class="selection-button">Select all</button>
+            <div class="selection-controls">
+              <button id="select-visible" type="button" class="selection-button">(A) Select all</button>
+            </div>
           </div>
         </div>
         <section class="utility-panel">
-          <button id="close-selected" type="button" disabled>Close selected tabs</button>
+          <button id="close-selected" type="button" disabled>(CTRL-ENTER) Close selected</button>
           <div class="footer-secondary">
-            <button id="hotkeys-button" type="button" class="secondary">Hotkeys</button>
+            <button id="hotkeys-button" type="button" class="secondary">(?) Hotkeys</button>
             <button id="tip-button" type="button" class="secondary">Tip</button>
           </div>
           <label class="default-toggle">
@@ -135,13 +137,15 @@
         <li>
           <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>Click</kbd> on a tab row closes that tab instantly.
         </li>
+        <li><kbd>?</kbd> opens/closes the hotkeys panel.</li>
+        <li><kbd>P</kbd> hides or shows pinned tabs.</li>
         <li><kbd>A</kbd> selects or clears all visible tabs.</li>
         <li><kbd>1</kbd>, <kbd>2</kbd>, <kbd>3</kbd> switch between window, recent, and oldest sorting.</li>
         <li><kbd>L</kbd> toggles between horizontal and vertical layouts.</li>
         <li><kbd>F</kbd> opens the full-page view (popup only).</li>
         <li><kbd>Q</kbd> closes the full-page view tab.</li>
       </ul>
-      <p class="about-copy">Use the Hide pinned toggle to reveal pinned tabs when needed.</p>
+      <p class="about-copy">Use the Hide pins toggle to reveal pinned tabs when needed.</p>
       <button
         id="hotkeys-close"
         type="button"
@@ -161,7 +165,7 @@
       tabindex="-1"
       aria-hidden="true"
     >
-      <p class="about-title">Supporting Tabula Rasa</p>
+      <p class="about-title">Supporting the Author</p>
       <p class="about-copy">
         Tabula Rasa was created and is maintained by the developer as a project during personal free time.
       </p>

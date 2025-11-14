@@ -38,6 +38,8 @@ You can switch between them at any time; both share the same filters, selections
 | **X** | Close the focused tab item. |
 | **Ctrl/Cmd + Enter** | Close all selected tabs. |
 | **Ctrl/Cmd + Click** | Close the clicked tab instantly. |
+| **?** | Open/close the hotkeys dialog. |
+| **P** | Hide or show pinned tabs. |
 | **A** | Select or clear all visible tabs. |
 | **1 / 2 / 3** | Switch sorting: browser / recent / oldest. |
 | **L** | Toggle between horizontal and vertical full-view layouts. |
@@ -50,7 +52,7 @@ You can revisit these at any time via the **Hotkeys** button.
 
 ## Tips & Support
 
-- Need to show pinned tabs? Toggle **Hide pinned** at the top of the list.  
+- Need to show pinned tabs? Toggle **Hide pins** at the top of the list.  
 - Sorting and view preferences persist automatically between sessions.  
 - The **Tip** button (or [buymeacoffee.com/fejikso](https://buymeacoffee.com/fejikso)) helps support ongoing development.  
 - Found a bug or have a feature request? Open an issue on the project repo or send a message via Buy Me a Coffee.
