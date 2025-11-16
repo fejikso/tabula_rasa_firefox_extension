@@ -45,6 +45,7 @@ let activeTabIdFocusTarget = null;
 let shouldFocusActiveTab = false;
 let fullViewOrientation = ORIENTATION_HORIZONTAL;
 let focusSearchFirst = true;
+let skipFocusSearchFirstOnce = false;
 let confirmBeforeClose = true;
 let closePopupAfterOpen = true;
 let hidePinnedByDefault = true;
@@ -323,6 +324,7 @@ function toggleVisibleSelection() {
     });
   }
   updateCloseButtonState();
+  skipFocusSearchFirstOnce = true;
   renderTabs(visibleTabs);
   return true;
 }
@@ -366,6 +368,8 @@ function removeClosedTabs(closedIds) {
 function renderTabs(tabs) {
   const activeTabId =
     document.activeElement?.closest(".tab-item")?.dataset.tabId ?? null;
+  const shouldSkipFocusSearch = skipFocusSearchFirstOnce;
+  skipFocusSearchFirstOnce = false;
   let itemToRefocus = null;
   let firstItem = null;
   let activeItemElement = null;
@@ -464,7 +468,7 @@ function renderTabs(tabs) {
   }
 
   // If focusSearchFirst is enabled and we're not focusing an active tab, focus search first
-  if (focusSearchFirst && !shouldFocusActiveTab && searchInput) {
+  if (focusSearchFirst && !shouldFocusActiveTab && !shouldSkipFocusSearch && searchInput) {
     requestAnimationFrame(() => {
       searchInput.focus({ preventScroll: true });
     });

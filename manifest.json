@@ -3,6 +3,14 @@
   "name": "Tabula Rasa",
   "description": "Review the open tabs in your current window, select the ones you no longer need, and close them in one click.",
   "version": "1.0.0",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "tabula-rasa@fejikso",
+      "data_collection_permissions": {
+        "required": ["none"]
+      }
+    }
+  },
   "action": {
     "default_title": "Tabula Rasa",
     "default_popup": "popup.html",
