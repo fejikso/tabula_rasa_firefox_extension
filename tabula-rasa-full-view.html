@@ -200,6 +200,24 @@
         <li><kbd>Q</kbd> closes the full-page view tab.</li>
       </ul>
       <p class="about-copy">Use the Hide pins toggle to reveal pinned tabs when needed.</p>
+      <p class="about-title" style="margin-top: 24px;">Advanced Search Features</p>
+      <p class="about-copy">
+        The search box supports advanced filtering with prefixes and multiple search terms:
+      </p>
+      <ul class="about-list">
+        <li>
+          <strong>url:</strong> prefix restricts search to URLs only. Example: <kbd>url:github</kbd> finds tabs with "github" in the URL.
+        </li>
+        <li>
+          <strong>title:</strong> prefix restricts search to tab titles only. Example: <kbd>title:docs</kbd> finds tabs with "docs" in the title.
+        </li>
+        <li>
+          <strong>Multiple terms:</strong> Space-separated terms use AND logic. Example: <kbd>test url:git</kbd> finds tabs with "test" (in title or URL) AND "git" in the URL.
+        </li>
+        <li>
+          <strong>Default behavior:</strong> Terms without prefixes search both title and URL. Example: <kbd>mail sync plus</kbd> finds tabs containing "mail" AND "sync" AND "plus" anywhere.
+        </li>
+      </ul>
       <button
         id="hotkeys-close"
         type="button"

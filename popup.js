@@ -711,17 +711,49 @@ function getSortedTabs() {
   }
 }
 
+function parseSearchQuery(query) {
+  const trimmed = query.trim();
+  if (!trimmed) {
+    return [];
+  }
+  const terms = trimmed.split(/\s+/).filter((term) => term.length > 0);
+  return terms.map((term) => {
+    const lowerTerm = term.toLowerCase();
+    if (lowerTerm.startsWith("url:")) {
+      const value = term.slice(4).trim();
+      return { type: "url", value: value.toLowerCase() };
+    }
+    if (lowerTerm.startsWith("title:")) {
+      const value = term.slice(6).trim();
+      return { type: "title", value: value.toLowerCase() };
+    }
+    return { type: "both", value: lowerTerm };
+  });
+}
+
 function getVisibleTabs() {
   const sorted = getSortedTabs();
   const filteredByPin = hidePinned ? sorted.filter((tab) => !tab.pinned) : sorted;
-  const query = searchQuery.trim().toLowerCase();
+  const query = searchQuery.trim();
   if (!query) {
+    return filteredByPin;
+  }
+  const searchTerms = parseSearchQuery(query);
+  if (searchTerms.length === 0) {
     return filteredByPin;
   }
   return filteredByPin.filter((tab) => {
     const title = (tab.title?.trim() || "").toLowerCase();
     const url = (tab.url || "").toLowerCase();
-    return title.includes(query) || url.includes(query);
+    return searchTerms.every((term) => {
+      if (term.type === "url") {
+        return url.includes(term.value);
+      }
+      if (term.type === "title") {
+        return title.includes(term.value);
+      }
+      return title.includes(term.value) || url.includes(term.value);
+    });
   });
 }
 

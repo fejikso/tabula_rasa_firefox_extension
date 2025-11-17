@@ -51,6 +51,30 @@ Tabula Rasa is built around hotkeys. Once the tab list has focus (press **Enter*
 | **L** | Toggle horizontal/vertical layout (Full View only). |
 | **Q** | Close Tabula Rasa (popup or full view). |
 
+## **🔍 Advanced Search Features**
+
+The search box supports advanced filtering with prefixes and multiple search terms. All searches are case-insensitive.
+
+### **Field-Specific Search**
+
+Use prefixes to restrict your search to specific fields:
+
+- **`url:`** prefix restricts search to URLs only.  
+  Example: `url:github` finds tabs with "github" in the URL.
+
+- **`title:`** prefix restricts search to tab titles only.  
+  Example: `title:docs` finds tabs with "docs" in the title.
+
+- **No prefix** (default): Terms without prefixes search both title and URL.  
+  Example: `mail` finds tabs with "mail" in either the title or URL.
+
+### **Multiple Terms with AND Logic**
+
+Space-separated terms use AND logic—all terms must match for a tab to be shown:
+
+- **`test url:git`** finds tabs with "test" (in title or URL) AND "git" in the URL.
+- **`mail sync plus`** finds tabs containing "mail" AND "sync" AND "plus" anywhere (title or URL).
+
 ## **👁️ Views at a Glance**
 
 Both views share the same filters and selections, ensuring a seamless experience when switching.
