@@ -39,6 +39,10 @@ body.layout-full {
   min-height: 100vh;
   padding: clamp(24px, 4vw, 48px);
   gap: clamp(12px, 2.5vw, 12px);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
 }
 
 body.layout-full header,
@@ -46,13 +50,6 @@ body.layout-full .full-view,
 body.layout-full .about {
   width: min(1100px, 100%);
   margin-inline: auto;
-}
-
-body.layout-full {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
 }
 
 body.layout-full .full-view {
@@ -173,9 +170,6 @@ body.layout-full.orientation-vertical .sidebar-panel {
   min-width: auto;
   max-width: none;
   padding-right: 0;
-}
-
-body.layout-full.orientation-vertical .sidebar-panel {
   gap: 8px;
 }
 
@@ -615,8 +609,9 @@ body.layout-full .sort-controls {
 }
 
 .tab-item:focus-visible {
-  border-color: rgba(0, 16, 23, 0.35);
+  border-color: rgb(0, 0, 0);
   box-shadow: 0 0 0 4px rgba(0, 96, 223, 0.5);
+  background: rgba(0, 0, 255, 0.25);
 }
 
 .tab-item:hover {
@@ -652,7 +647,7 @@ body.layout-full .sort-controls {
 
 .tab-content {
   display: grid;
-  grid-template-columns: minmax(0, 3fr) auto;
+  grid-template-columns: var(--tab-grid-columns, minmax(0, 3fr) auto);
   gap: 6px;
   min-width: 0;
   align-items: center;
@@ -699,7 +694,7 @@ body.layout-full .sort-controls {
 }
 
 body.layout-full .tab-content {
-  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) minmax(0, 1.2fr) auto;
+  --tab-grid-columns: minmax(0, 2fr) minmax(0, 3fr) minmax(0, 1.2fr) auto;
   gap: 16px;
 }
 
@@ -845,14 +840,6 @@ button:disabled {
 body:not(.layout-full) .unified-button {
   padding: 4px 8px;
   min-height: 28px;
-  font-size: 12px;
-}
-
-/* Full view uses unified-button with standard sizing */
-body.layout-full .unified-button {
-  padding: 6px 12px;
-  min-height: 32px;
-  font-size: 12px;
 }
 
 body.layout-full .ordering-row {
