@@ -615,8 +615,8 @@ body.layout-full .sort-controls {
 }
 
 .tab-item:focus-visible {
-  border-color: rgba(0, 96, 223, 0.35);
-  box-shadow: 0 0 0 2px rgba(0, 96, 223, 0.15);
+  border-color: rgba(0, 16, 23, 0.35);
+  box-shadow: 0 0 0 4px rgba(0, 96, 223, 0.5);
 }
 
 .tab-item:hover {

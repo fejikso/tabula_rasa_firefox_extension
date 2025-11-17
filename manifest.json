@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Tabula Rasa",
   "description": "Review the open tabs in your current window, select the ones you no longer need, and close them in one click.",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "browser_specific_settings": {
     "gecko": {
       "id": "tabula-rasa@fejikso",

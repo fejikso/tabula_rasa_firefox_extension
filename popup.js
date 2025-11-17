@@ -36,20 +36,22 @@ const FOCUS_SEARCH_FIRST_KEY = "tabulaRasa.focusSearchFirst";
 const CONFIRM_BEFORE_CLOSE_KEY = "tabulaRasa.confirmBeforeClose";
 const CLOSE_POPUP_AFTER_OPEN_KEY = "tabulaRasa.closePopupAfterOpen";
 const HIDE_PINNED_BY_DEFAULT_KEY = "tabulaRasa.hidePinnedByDefault";
+const PIN_TABS_AT_TOP_KEY = "tabulaRasa.pinTabsAtTop";
 const ORIENTATION_HORIZONTAL = "horizontal";
 const ORIENTATION_VERTICAL = "vertical";
-let hidePinned = true;
+let hidePinned = false;
 let searchQuery = "";
 let launchFullViewByDefault = false;
 let activeTabIdFocusTarget = null;
 let shouldFocusActiveTab = false;
 let fullViewOrientation = ORIENTATION_HORIZONTAL;
-let focusSearchFirst = true;
+let focusSearchFirst = false;
 let skipFocusSearchFirstOnce = false;
 let confirmBeforeClose = true;
 let closePopupAfterOpen = true;
-let hidePinnedByDefault = true;
-let launchHotkey = "F8";
+let hidePinnedByDefault = false;
+let pinTabsAtTop = false;
+let launchHotkey = "Ctrl+Shift+Comma";
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
   dateStyle: "medium",
@@ -175,7 +177,12 @@ async function setFullViewOrientation(mode, { persist = false } = {}) {
 function focusFirstTabItem() {
   const firstItem = tabContainer.querySelector(".tab-item");
   if (firstItem) {
-    focusElement(firstItem, { preventScroll: isFullView });
+    try {
+      firstItem.scrollIntoView({ block: "center", inline: "nearest" });
+    } catch (error) {
+      // ignore scroll errors
+    }
+    focusElement(firstItem, { preventScroll: false });
     return true;
   }
   return false;
@@ -185,10 +192,41 @@ function focusLastTabItem() {
   const items = Array.from(tabContainer.querySelectorAll(".tab-item"));
   const lastItem = items[items.length - 1];
   if (lastItem) {
-    focusElement(lastItem, { preventScroll: isFullView });
+    try {
+      lastItem.scrollIntoView({ block: "center", inline: "nearest" });
+    } catch (error) {
+      // ignore scroll errors
+    }
+    focusElement(lastItem, { preventScroll: false });
     return true;
   }
   return false;
+}
+
+function ensurePreferredFocus() {
+  if (!isFullView) {
+    return;
+  }
+  const active = document.activeElement;
+  const isOnTabItem = active?.closest?.(".tab-item");
+  const isOnSearch = active === searchInput;
+
+  // If focus isn't on a meaningful interactive element, re-assert preference
+  if (!active || active === document.body || active === document.documentElement || (!isOnTabItem && !isOnSearch)) {
+    if (focusSearchFirst && searchInput) {
+      try {
+        searchInput.focus({ preventScroll: true });
+      } catch (error) {
+        searchInput.focus();
+      }
+      return;
+    }
+    if (!focusFirstTabItem()) {
+      if (togglePinnedButton) {
+        focusElement(togglePinnedButton, { preventScroll: true });
+      }
+    }
+  }
 }
 
 async function restoreSortMode() {
@@ -201,6 +239,7 @@ async function restoreSortMode() {
       CONFIRM_BEFORE_CLOSE_KEY,
       CLOSE_POPUP_AFTER_OPEN_KEY,
       HIDE_PINNED_BY_DEFAULT_KEY,
+      PIN_TABS_AT_TOP_KEY,
       LAUNCH_HOTKEY_KEY,
     ]);
     const savedMode = stored?.[SORT_MODE_KEY];
@@ -228,6 +267,9 @@ async function restoreSortMode() {
     if (typeof stored?.[HIDE_PINNED_BY_DEFAULT_KEY] === "boolean") {
       hidePinnedByDefault = stored[HIDE_PINNED_BY_DEFAULT_KEY];
       hidePinned = hidePinnedByDefault;
+    }
+    if (typeof stored?.[PIN_TABS_AT_TOP_KEY] === "boolean") {
+      pinTabsAtTop = stored[PIN_TABS_AT_TOP_KEY];
     }
     const storedHotkey = stored?.[LAUNCH_HOTKEY_KEY];
     if (typeof storedHotkey === "string" && storedHotkey.trim()) {
@@ -636,24 +678,37 @@ function updateSortButtonState() {
 function getSortedTabs() {
   const tabs = [...tabCache];
   
-  // Split into pinned and unpinned
-  const pinned = tabs.filter((tab) => tab.pinned);
-  const unpinned = tabs.filter((tab) => !tab.pinned);
-  
-  // Sort pinned tabs by their original index (maintain relative order)
-  pinned.sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
-  
-  // Sort unpinned tabs by selected sort mode
-  if (sortMode === "recent") {
-    unpinned.sort((a, b) => (b.lastAccessed ?? 0) - (a.lastAccessed ?? 0));
-  } else if (sortMode === "oldest") {
-    unpinned.sort((a, b) => (a.lastAccessed ?? 0) - (b.lastAccessed ?? 0));
+  if (pinTabsAtTop) {
+    // Split into pinned and unpinned
+    const pinned = tabs.filter((tab) => tab.pinned);
+    const unpinned = tabs.filter((tab) => !tab.pinned);
+    
+    // Sort pinned tabs by their original index (maintain relative order)
+    pinned.sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
+    
+    // Sort unpinned tabs by selected sort mode
+    if (sortMode === "recent") {
+      unpinned.sort((a, b) => (b.lastAccessed ?? 0) - (a.lastAccessed ?? 0));
+    } else if (sortMode === "oldest") {
+      unpinned.sort((a, b) => (a.lastAccessed ?? 0) - (b.lastAccessed ?? 0));
+    } else {
+      unpinned.sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
+    }
+    
+    // Return pinned tabs first, then unpinned
+    return [...pinned, ...unpinned];
   } else {
-    unpinned.sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
+    // Sort all tabs together by selected sort mode
+    if (sortMode === "recent") {
+      tabs.sort((a, b) => (b.lastAccessed ?? 0) - (a.lastAccessed ?? 0));
+    } else if (sortMode === "oldest") {
+      tabs.sort((a, b) => (a.lastAccessed ?? 0) - (b.lastAccessed ?? 0));
+    } else {
+      tabs.sort((a, b) => (a.index ?? 0) - (b.index ?? 0));
+    }
+    
+    return tabs;
   }
-  
-  // Return pinned tabs first, then unpinned
-  return [...pinned, ...unpinned];
 }
 
 function getVisibleTabs() {
@@ -817,7 +872,7 @@ const OPTIONS_CONFIG = [
     label: "Focus on search bar first",
     type: "checkbox",
     storageKey: FOCUS_SEARCH_FIRST_KEY,
-    defaultValue: true,
+    defaultValue: false,
     onChange: async (value) => {
       focusSearchFirst = value;
       try {
@@ -868,7 +923,7 @@ const OPTIONS_CONFIG = [
     label: "Hide pinned tabs by default",
     type: "checkbox",
     storageKey: HIDE_PINNED_BY_DEFAULT_KEY,
-    defaultValue: true,
+    defaultValue: false,
     onChange: async (value) => {
       hidePinnedByDefault = value;
       hidePinned = value;
@@ -880,6 +935,24 @@ const OPTIONS_CONFIG = [
         });
       } catch (error) {
         console.error("Failed to save hide pinned by default preference:", error);
+      }
+    },
+  },
+  {
+    id: "pin-tabs-at-top",
+    label: "Pinned tabs always at top",
+    type: "checkbox",
+    storageKey: PIN_TABS_AT_TOP_KEY,
+    defaultValue: false,
+    onChange: async (value) => {
+      pinTabsAtTop = value;
+      renderTabs(getVisibleTabs());
+      try {
+        await browser.storage.local.set({
+          [PIN_TABS_AT_TOP_KEY]: value,
+        });
+      } catch (error) {
+        console.error("Failed to save pin tabs at top preference:", error);
       }
     },
   },
@@ -915,6 +988,8 @@ async function loadOptions() {
             closePopupAfterOpen = storedValue !== undefined ? storedValue : option.defaultValue;
           } else if (option.id === "hide-pinned-by-default") {
             hidePinnedByDefault = storedValue !== undefined ? storedValue : option.defaultValue;
+          } else if (option.id === "pin-tabs-at-top") {
+            pinTabsAtTop = storedValue !== undefined ? storedValue : option.defaultValue;
           }
         } else if (option.type === "select" && option.id === "launch-hotkey") {
         const hotkey = storedValue || option.defaultValue;
@@ -1075,6 +1150,12 @@ async function init() {
   }
   updateSearchClearVisibility();
   await loadTabs();
+  if (isFullView) {
+    // Defer to avoid racing browser tab activation and our initial render
+    setTimeout(() => {
+      ensurePreferredFocus();
+    }, 0);
+  }
 }
 
 init().catch((error) => {
@@ -1340,4 +1421,15 @@ function focusRelativeItem(currentItem, offset) {
 }
 
 document.addEventListener("keydown", handleGlobalKeydown);
+
+// Re-assert focus when the full view tab gains focus or becomes visible again
+window.addEventListener("focus", () => {
+  ensurePreferredFocus();
+});
+
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    ensurePreferredFocus();
+  }
+});
 
