@@ -653,6 +653,13 @@ body.layout-full .sort-controls {
   align-items: center;
 }
 
+.tab-favicon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  object-fit: contain;
+}
+
 .tab-content span {
   display: none;
   font-size: 12px;
@@ -695,6 +702,16 @@ body.layout-full .sort-controls {
 
 body.layout-full .tab-content {
   --tab-grid-columns: minmax(0, 2fr) minmax(0, 3fr) minmax(0, 1.2fr) auto;
+  gap: 16px;
+}
+
+.tab-content.show-favicons {
+  grid-template-columns: auto minmax(0, 3fr) auto;
+  gap: 8px 6px;
+}
+
+body.layout-full .tab-content.show-favicons {
+  grid-template-columns: auto minmax(0, 2fr) minmax(0, 3fr) minmax(0, 1.2fr) auto;
   gap: 16px;
 }
 
@@ -934,6 +951,14 @@ body.layout-full .about:not(.hidden) {
   width: min(700px, calc(100% - 64px));
   margin: 0;
   z-index: 50;
+}
+
+body.layout-full #options-container .option-item label {
+  justify-content: flex-start !important;
+}
+
+body.layout-full #options-container .option-item label select {
+  margin-left: auto !important;
 }
 
 .about-title {

@@ -37,6 +37,7 @@ const CONFIRM_BEFORE_CLOSE_KEY = "tabulaRasa.confirmBeforeClose";
 const CLOSE_POPUP_AFTER_OPEN_KEY = "tabulaRasa.closePopupAfterOpen";
 const HIDE_PINNED_BY_DEFAULT_KEY = "tabulaRasa.hidePinnedByDefault";
 const PIN_TABS_AT_TOP_KEY = "tabulaRasa.pinTabsAtTop";
+const SHOW_FAVICONS_KEY = "tabulaRasa.showFavicons";
 const ORIENTATION_HORIZONTAL = "horizontal";
 const ORIENTATION_VERTICAL = "vertical";
 let hidePinned = false;
@@ -51,6 +52,7 @@ let confirmBeforeClose = true;
 let closePopupAfterOpen = true;
 let hidePinnedByDefault = false;
 let pinTabsAtTop = false;
+let showFavicons = false;
 let launchHotkey = "Ctrl+Shift+Comma";
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
@@ -421,7 +423,9 @@ function renderTabs(tabs) {
   tabs.forEach((tab) => {
     const clone = tabTemplate.content.cloneNode(true);
     const item = clone.querySelector(".tab-item");
+    const tabContent = clone.querySelector(".tab-content");
     const checkbox = clone.querySelector(".tab-toggle");
+    const faviconImg = clone.querySelector(".tab-favicon");
     const titleButton = clone.querySelector(".tab-title");
     const urlSpan = clone.querySelector(".tab-url");
     const lastAccessedSpan = clone.querySelector(".tab-last-accessed");
@@ -440,6 +444,22 @@ function renderTabs(tabs) {
     titleButton.textContent = displayTitle;
     titleButton.title = rawTitle;
     checkbox.checked = selectedTabIds.has(tab.id);
+
+    if (faviconImg) {
+      if (showFavicons && tab.favIconUrl) {
+        faviconImg.src = tab.favIconUrl;
+        faviconImg.style.display = "";
+        faviconImg.alt = "";
+        if (tabContent) {
+          tabContent.classList.add("show-favicons");
+        }
+      } else {
+        faviconImg.style.display = "none";
+        if (tabContent) {
+          tabContent.classList.remove("show-favicons");
+        }
+      }
+    }
 
     checkbox.addEventListener("change", () => handleCheckboxChange(tab.id, checkbox));
     titleButton.addEventListener("click", (event) => {
@@ -567,6 +587,7 @@ async function loadTabs() {
       index: tab.index ?? 0,
       lastAccessed: tab.lastAccessed ?? 0,
       pinned: Boolean(tab.pinned),
+      favIconUrl: tab.favIconUrl,
     }));
     updateTabCount();
     renderTabs(getVisibleTabs());
@@ -988,6 +1009,24 @@ const OPTIONS_CONFIG = [
       }
     },
   },
+  {
+    id: "show-favicons",
+    label: "Show favicons",
+    type: "checkbox",
+    storageKey: SHOW_FAVICONS_KEY,
+    defaultValue: false,
+    onChange: async (value) => {
+      showFavicons = value;
+      renderTabs(getVisibleTabs());
+      try {
+        await browser.storage.local.set({
+          [SHOW_FAVICONS_KEY]: value,
+        });
+      } catch (error) {
+        console.error("Failed to save show favicons preference:", error);
+      }
+    },
+  },
 ];
 
 const optionsContainer = document.getElementById("options-container");
@@ -1022,6 +1061,8 @@ async function loadOptions() {
             hidePinnedByDefault = storedValue !== undefined ? storedValue : option.defaultValue;
           } else if (option.id === "pin-tabs-at-top") {
             pinTabsAtTop = storedValue !== undefined ? storedValue : option.defaultValue;
+          } else if (option.id === "show-favicons") {
+            showFavicons = storedValue !== undefined ? storedValue : option.defaultValue;
           }
         } else if (option.type === "select" && option.id === "launch-hotkey") {
         const hotkey = storedValue || option.defaultValue;

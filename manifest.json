@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Tabula Rasa",
   "description": "Review the open tabs in your current window, select the ones you no longer need, and close them in one click.",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "browser_specific_settings": {
     "gecko": {
       "id": "tabula-rasa@fejikso",
@@ -14,13 +14,13 @@
   "action": {
     "default_title": "Tabula Rasa",
     "default_popup": "popup.html",
-    "default_icon": "icon.svg"
+    "default_icon": "icon.png"
   },
   "icons": {
-    "16": "icon.svg",
-    "32": "icon.svg",
-    "48": "icon.svg",
-    "128": "icon.svg"
+    "16": "icon.png",
+    "32": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
   },
   "permissions": [
     "tabs",
