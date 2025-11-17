@@ -5,9 +5,8 @@ Tabula Rasa provides a fast way for navigating, searching, and closing open tabs
 The core value is **low-latency tab control**: search, switch, sort, and batch-close tabs instantly—all **using only the keyboard**, eliminating the need for mouse interaction.
 
 <!-- markdownlint-disable-next-line MD033 -->
-<img src="media/screenshot_search.png" alt="Screenshot of Tabula Rasa popup filtering recipe tabs" width="400">
-<!-- markdownlint-disable-next-line MD033 -->
-<img src="media/screenshot_closing.png" alt="Screenshot of Tabula Rasa popup about to close multiple tabs" width="400">
+<p><img src="media/screenshot_search.png" alt="Screenshot of Tabula Rasa popup filtering recipe tabs" width="200">
+<img src="media/screenshot_closing.png" alt="Screenshot of Tabula Rasa popup about to close multiple tabs" width="200"></p>
 
 ## **🚀 Full Keyboard Workflow Example 1**
 
