@@ -156,6 +156,7 @@
       </aside>
       <main>
         <div class="tab-scroll">
+          <p id="search-label" class="muted hidden" style="font-size: 12px; margin: 0; padding: 4px 0;"></p>
           <section id="tab-container" aria-live="polite"></section>
         </div>
         <p id="empty-state" class="muted hidden">No tabs to show.</p>
@@ -205,6 +206,9 @@
         The search box supports advanced filtering with prefixes and multiple search terms:
       </p>
       <ul class="about-list">
+        <li>
+          <strong>history:</strong> or <strong>hist:</strong> prefix searches browser history instead of open tabs. Example: <kbd>history:github</kbd> or <kbd>hist:github</kbd> searches your browsing history for "github".
+        </li>
         <li>
           <strong>url:</strong> prefix restricts search to URLs only. Example: <kbd>url:github</kbd> finds tabs with "github" in the URL.
         </li>

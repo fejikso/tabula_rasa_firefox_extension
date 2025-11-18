@@ -1,5 +1,6 @@
 const tabContainer = document.getElementById("tab-container");
 const emptyState = document.getElementById("empty-state");
+const searchLabel = document.getElementById("search-label");
 const closeButton = document.getElementById("close-selected");
 const tabTemplate = document.getElementById("tab-item-template");
 const hotkeysButton = document.getElementById("hotkeys-button");
@@ -60,6 +61,7 @@ const dateFormatter = new Intl.DateTimeFormat(undefined, {
   timeStyle: "short",
 });
 const URL_DISPLAY_MAX = 80;
+const MAXIMUM_HISTORY_SEARCH = 250;
 
 function truncateUrl(url) {
   if (!url || url.length <= URL_DISPLAY_MAX) {
@@ -83,6 +85,26 @@ function formatLastAccessed(timestamp) {
   } catch (error) {
     console.error("Failed to format last accessed timestamp:", error);
     return "unknown";
+  }
+}
+
+async function deleteHistoryItem(url, title) {
+  if (!url) {
+    return;
+  }
+  if (confirmBeforeClose) {
+    const itemTitle = title || url || "this history item";
+    if (!confirm(`Delete from history: ${itemTitle}?`)) {
+      return;
+    }
+  }
+  try {
+    await browser.history.deleteUrl({ url: url });
+    // Refresh the visible tabs to remove the deleted item
+    const tabs = await getVisibleTabs();
+    renderTabs(tabs);
+  } catch (error) {
+    console.error(`Failed to delete history item ${url}:`, error);
   }
 }
 
@@ -300,13 +322,43 @@ function updateCloseButtonState() {
       : "Close selected tabs";
 }
 
+function updateSearchLabel(tabs) {
+  if (!searchLabel) {
+    return;
+  }
+  const query = searchQuery.trim();
+  if (!query) {
+    searchLabel.classList.add("hidden");
+    return;
+  }
+  
+  const isHistorySearch = isHistoryPrefix(query);
+  const count = tabs.length;
+  const labelText = isHistorySearch
+    ? `history search (${count} result${count !== 1 ? "s" : ""})`
+    : `loaded tabs search (${count} result${count !== 1 ? "s" : ""})`;
+  
+  searchLabel.textContent = labelText;
+  searchLabel.classList.remove("hidden");
+}
+
 function toggleEmptyState() {
   const hasTabs = tabContainer.childElementCount > 0;
   emptyState.classList.toggle("hidden", hasTabs);
   if (!hasTabs) {
-    emptyState.textContent = searchQuery.trim()
-      ? "No tabs match your search."
-      : "No tabs to show.";
+    const query = searchQuery.trim();
+    if (query && isHistoryPrefix(query)) {
+      const queryAfterPrefix = query.toLowerCase().startsWith("history:")
+        ? query.slice(8).trim()
+        : query.slice(5).trim();
+      emptyState.textContent = queryAfterPrefix
+        ? "No history matches your search."
+        : "No history to show.";
+    } else {
+      emptyState.textContent = query
+        ? "No tabs match your search."
+        : "No tabs to show.";
+    }
   } else {
     emptyState.textContent = "No tabs to show.";
   }
@@ -337,33 +389,40 @@ function updateLaunchHotkeyDisplay() {
   }
 }
 
-function updateSelectVisibleButton(currentVisibleTabs) {
+async function updateSelectVisibleButton(currentVisibleTabs) {
   if (!selectVisibleButton) {
     return;
   }
-  const visibleTabs = currentVisibleTabs ?? getVisibleTabs();
-  if (visibleTabs.length === 0) {
+  const visibleTabs = currentVisibleTabs ?? await getVisibleTabs();
+  // Filter out history items - they can't be bulk-selected/closed
+  const selectableTabs = visibleTabs.filter((tab) => !tab.isHistoryItem);
+  if (selectableTabs.length === 0) {
     selectVisibleButton.disabled = true;
     selectVisibleButton.textContent = "Select all";
     return;
   }
   selectVisibleButton.disabled = false;
-  const allVisibleSelected = visibleTabs.every((tab) => selectedTabIds.has(tab.id));
+  const allVisibleSelected = selectableTabs.every((tab) => selectedTabIds.has(tab.id));
   selectVisibleButton.textContent = allVisibleSelected ? "Clear selection" : "Select all";
 }
 
-function toggleVisibleSelection() {
-  const visibleTabs = getVisibleTabs();
+async function toggleVisibleSelection() {
+  const visibleTabs = await getVisibleTabs();
   if (visibleTabs.length === 0) {
     return false;
   }
-  const allVisibleSelected = visibleTabs.every((tab) => selectedTabIds.has(tab.id));
+  // Filter out history items - they can't be bulk-selected/closed
+  const selectableTabs = visibleTabs.filter((tab) => !tab.isHistoryItem);
+  if (selectableTabs.length === 0) {
+    return false;
+  }
+  const allVisibleSelected = selectableTabs.every((tab) => selectedTabIds.has(tab.id));
   if (allVisibleSelected) {
-    visibleTabs.forEach((tab) => {
+    selectableTabs.forEach((tab) => {
       selectedTabIds.delete(tab.id);
     });
   } else {
-    visibleTabs.forEach((tab) => {
+    selectableTabs.forEach((tab) => {
       selectedTabIds.add(tab.id);
     });
   }
@@ -373,14 +432,14 @@ function toggleVisibleSelection() {
   return true;
 }
 
-function handleCheckboxChange(tabId, checkbox) {
+async function handleCheckboxChange(tabId, checkbox) {
   if (checkbox.checked) {
     selectedTabIds.add(tabId);
   } else {
     selectedTabIds.delete(tabId);
   }
   updateCloseButtonState();
-  updateSelectVisibleButton();
+  await updateSelectVisibleButton();
   // Focus the tab item so keyboard navigation works
   const tabItem = checkbox.closest(".tab-item");
   if (tabItem) {
@@ -398,7 +457,7 @@ function updateTabCount() {
   }
 }
 
-function removeClosedTabs(closedIds) {
+async function removeClosedTabs(closedIds) {
   const closedSet = new Set(closedIds);
   tabCache = tabCache.filter((tab) => !closedSet.has(tab.id));
   closedIds.forEach((tabId) => {
@@ -406,7 +465,8 @@ function removeClosedTabs(closedIds) {
   });
   updateCloseButtonState();
   updateTabCount();
-  renderTabs(getVisibleTabs());
+  const tabs = await getVisibleTabs();
+  renderTabs(tabs);
 }
 
 function renderTabs(tabs) {
@@ -431,10 +491,19 @@ function renderTabs(tabs) {
     const lastAccessedSpan = clone.querySelector(".tab-last-accessed");
 
     item.dataset.tabId = tab.id;
-    if (typeof tab.windowId === "number") {
+    if (tab.isHistoryItem) {
+      // History items don't have windowId
+      delete item.dataset.windowId;
+      item.dataset.isHistoryItem = "true";
+      item.dataset.historyUrl = tab.url || "";
+    } else if (typeof tab.windowId === "number") {
       item.dataset.windowId = String(tab.windowId);
+      delete item.dataset.isHistoryItem;
+      delete item.dataset.historyUrl;
     } else {
       delete item.dataset.windowId;
+      delete item.dataset.isHistoryItem;
+      delete item.dataset.historyUrl;
     }
     item.tabIndex = 0;
 
@@ -443,7 +512,13 @@ function renderTabs(tabs) {
     const displayTitle = `${pinPrefix}${rawTitle}`;
     titleButton.textContent = displayTitle;
     titleButton.title = rawTitle;
-    checkbox.checked = selectedTabIds.has(tab.id);
+    if (tab.isHistoryItem) {
+      // History items can't be bulk-selected, so disable checkbox
+      checkbox.disabled = true;
+      checkbox.checked = false;
+    } else {
+      checkbox.checked = selectedTabIds.has(tab.id);
+    }
 
     if (faviconImg) {
       if (showFavicons && tab.favIconUrl) {
@@ -461,16 +536,43 @@ function renderTabs(tabs) {
       }
     }
 
-    checkbox.addEventListener("change", () => handleCheckboxChange(tab.id, checkbox));
+    checkbox.addEventListener("change", () => {
+      handleCheckboxChange(tab.id, checkbox).catch((error) => {
+        console.error("Failed to handle checkbox change:", error);
+      });
+    });
     titleButton.addEventListener("click", (event) => {
       if (event.ctrlKey || event.metaKey) {
         event.preventDefault();
-        closeSingleTabImmediate(tab.id).catch((error) => {
-          console.error("Unexpected error closing tab with modifier click:", error);
-        });
+        if (tab.isHistoryItem) {
+          // Delete history item with modifier click
+          deleteHistoryItem(tab.url, tab.title).catch((error) => {
+            console.error("Unexpected error deleting history item with modifier click:", error);
+          });
+        } else {
+          closeSingleTabImmediate(tab.id).catch((error) => {
+            console.error("Unexpected error closing tab with modifier click:", error);
+          });
+        }
         return;
       }
-      focusTab(tab.id, tab.windowId);
+      if (tab.isHistoryItem) {
+        // Open history item in a new tab
+        browser.tabs.create({ url: tab.url }).catch((error) => {
+          console.error("Failed to open history item:", error);
+        });
+        if (closePopupAfterOpen) {
+          if (isPopupView) {
+            window.close();
+          } else if (isFullView) {
+            closeFullViewTab().catch((error) => {
+              console.error("Unexpected error closing full view:", error);
+            });
+          }
+        }
+      } else {
+        focusTab(tab.id, tab.windowId);
+      }
     });
 
     if (urlSpan) {
@@ -491,9 +593,16 @@ function renderTabs(tabs) {
     const handleModifierClick = (event) => {
       if (event.ctrlKey || event.metaKey) {
         event.preventDefault();
-        closeSingleTabImmediate(tab.id).catch((error) => {
-          console.error("Unexpected error closing tab with modifier click:", error);
-        });
+        if (tab.isHistoryItem) {
+          // Delete history item with modifier click
+          deleteHistoryItem(tab.url, tab.title).catch((error) => {
+            console.error("Unexpected error deleting history item with modifier click:", error);
+          });
+        } else {
+          closeSingleTabImmediate(tab.id).catch((error) => {
+            console.error("Unexpected error closing tab with modifier click:", error);
+          });
+        }
       }
     };
 
@@ -501,12 +610,22 @@ function renderTabs(tabs) {
     urlSpan?.addEventListener("click", handleModifierClick);
     lastAccessedSpan?.addEventListener("click", handleModifierClick);
     const closeButton = item.querySelector(".tab-close");
-    closeButton?.addEventListener("click", (event) => {
-      event.preventDefault();
-      closeSingleTabImmediate(tab.id).catch((error) => {
-        console.error("Unexpected error closing tab via close button:", error);
+    if (tab.isHistoryItem) {
+      // Show close button for history items - it will delete from history
+      closeButton?.addEventListener("click", (event) => {
+        event.preventDefault();
+        deleteHistoryItem(tab.url, tab.title).catch((error) => {
+          console.error("Unexpected error deleting history item via close button:", error);
+        });
       });
-    });
+    } else {
+      closeButton?.addEventListener("click", (event) => {
+        event.preventDefault();
+        closeSingleTabImmediate(tab.id).catch((error) => {
+          console.error("Unexpected error closing tab via close button:", error);
+        });
+      });
+    }
 
     tabContainer.appendChild(clone);
 
@@ -522,8 +641,11 @@ function renderTabs(tabs) {
     }
   });
 
+  updateSearchLabel(tabs);
   toggleEmptyState();
-  updateSelectVisibleButton(tabs);
+  updateSelectVisibleButton(tabs).catch((error) => {
+    console.error("Failed to update select visible button:", error);
+  });
 
   if (searchHasFocus && !shouldFocusActiveTab) {
     return;
@@ -590,7 +712,8 @@ async function loadTabs() {
       favIconUrl: tab.favIconUrl,
     }));
     updateTabCount();
-    renderTabs(getVisibleTabs());
+    const visibleTabs = await getVisibleTabs();
+    renderTabs(visibleTabs);
     updateSortButtonState();
   } catch (error) {
     console.error("Failed to load tabs:", error);
@@ -618,7 +741,7 @@ async function closeSelectedTabs() {
 
   try {
     await browser.tabs.remove(tabIds);
-    removeClosedTabs(tabIds);
+    await removeClosedTabs(tabIds);
   } catch (error) {
     console.error("Failed to close tabs:", error);
     closeButton.textContent = "Try again";
@@ -732,10 +855,50 @@ function getSortedTabs() {
   }
 }
 
+function isHistoryPrefix(query) {
+  const lowerQuery = query.toLowerCase();
+  return lowerQuery.startsWith("history:") || lowerQuery.startsWith("hist:");
+}
+
 function parseSearchQuery(query) {
   const trimmed = query.trim();
   if (!trimmed) {
     return [];
+  }
+  const lowerTrimmed = trimmed.toLowerCase();
+  if (lowerTrimmed.startsWith("history:")) {
+    const remainingQuery = trimmed.slice(8).trim();
+    const terms = remainingQuery.split(/\s+/).filter((term) => term.length > 0);
+    const parsedTerms = terms.map((term) => {
+      const lowerTerm = term.toLowerCase();
+      if (lowerTerm.startsWith("url:")) {
+        const value = term.slice(4).trim();
+        return { type: "url", value: value.toLowerCase() };
+      }
+      if (lowerTerm.startsWith("title:")) {
+        const value = term.slice(6).trim();
+        return { type: "title", value: value.toLowerCase() };
+      }
+      return { type: "both", value: lowerTerm };
+    });
+    return [{ type: "history", query: remainingQuery, terms: parsedTerms }];
+  }
+  if (lowerTrimmed.startsWith("hist:")) {
+    const remainingQuery = trimmed.slice(5).trim();
+    const terms = remainingQuery.split(/\s+/).filter((term) => term.length > 0);
+    const parsedTerms = terms.map((term) => {
+      const lowerTerm = term.toLowerCase();
+      if (lowerTerm.startsWith("url:")) {
+        const value = term.slice(4).trim();
+        return { type: "url", value: value.toLowerCase() };
+      }
+      if (lowerTerm.startsWith("title:")) {
+        const value = term.slice(6).trim();
+        return { type: "title", value: value.toLowerCase() };
+      }
+      return { type: "both", value: lowerTerm };
+    });
+    return [{ type: "history", query: remainingQuery, terms: parsedTerms }];
   }
   const terms = trimmed.split(/\s+/).filter((term) => term.length > 0);
   return terms.map((term) => {
@@ -752,10 +915,90 @@ function parseSearchQuery(query) {
   });
 }
 
-function getVisibleTabs() {
+async function searchHistory(query) {
+  try {
+    // Extract text for history API - combine all non-prefixed terms
+    const searchTerms = parseSearchQuery(query);
+    if (searchTerms.length === 0 || searchTerms[0].type !== "history") {
+      return [];
+    }
+    
+    const historyTerm = searchTerms[0];
+    
+    // Extract only non-prefixed terms for the API query
+    // (prefixed terms like url: and title: will be filtered after)
+    const nonPrefixedTerms = historyTerm.terms
+      .filter(term => term.type === "both")
+      .map(term => term.value);
+    const apiQuery = nonPrefixedTerms.join(" ");
+    
+    // Call browser.history.search() API
+    // If there are non-prefixed terms, use them; otherwise search all history
+    const historyItems = await browser.history.search({
+      text: apiQuery || "", // Empty string searches all history
+      startTime: 0,
+      maxResults: MAXIMUM_HISTORY_SEARCH,
+    });
+    
+    // Map history items to tab-like format
+    let results = historyItems.map((item) => ({
+      id: item.lastVisitTime, // Use timestamp as unique ID
+      title: item.title || item.url || "Untitled",
+      url: item.url,
+      lastAccessed: item.lastVisitTime,
+      pinned: false,
+      favIconUrl: null,
+      isHistoryItem: true, // Flag to identify history items
+    }));
+    
+    // Apply ALL terms (including prefixed ones) as AND filters
+    // This ensures all terms after history: act as AND operators
+    if (historyTerm.terms.length > 0) {
+      results = results.filter((item) => {
+        const title = (item.title?.trim() || "").toLowerCase();
+        const url = (item.url || "").toLowerCase();
+        return historyTerm.terms.every((term) => {
+          if (term.type === "url") {
+            return url.includes(term.value);
+          }
+          if (term.type === "title") {
+            return title.includes(term.value);
+          }
+          // For "both" type, check if term is in title OR url
+          return title.includes(term.value) || url.includes(term.value);
+        });
+      });
+    }
+    
+    // Apply sorting based on current sortMode
+    if (sortMode === "recent") {
+      results.sort((a, b) => (b.lastAccessed ?? 0) - (a.lastAccessed ?? 0));
+    } else if (sortMode === "oldest") {
+      results.sort((a, b) => (a.lastAccessed ?? 0) - (b.lastAccessed ?? 0));
+    } else {
+      // "window" mode - use "recent" as default for history
+      results.sort((a, b) => (b.lastAccessed ?? 0) - (a.lastAccessed ?? 0));
+    }
+    
+    // Truncate at MAXIMUM_HISTORY_SEARCH (though API should respect this)
+    return results.slice(0, MAXIMUM_HISTORY_SEARCH);
+  } catch (error) {
+    console.error("Failed to search history:", error);
+    return [];
+  }
+}
+
+async function getVisibleTabs() {
+  const query = searchQuery.trim();
+  if (query && isHistoryPrefix(query)) {
+    // History search mode
+    const results = await searchHistory(query);
+    return results;
+  }
+  
+  // Regular tab filtering
   const sorted = getSortedTabs();
   const filteredByPin = hidePinned ? sorted.filter((tab) => !tab.pinned) : sorted;
-  const query = searchQuery.trim();
   if (!query) {
     return filteredByPin;
   }
@@ -778,13 +1021,14 @@ function getVisibleTabs() {
   });
 }
 
-function setSortMode(mode) {
+async function setSortMode(mode) {
   if (mode === sortMode) {
     return;
   }
   sortMode = mode;
   updateSortButtonState();
-  renderTabs(getVisibleTabs());
+  const tabs = await getVisibleTabs();
+  renderTabs(tabs);
   persistSortMode(sortMode).catch((error) => {
     console.error("Unexpected error persisting sort mode:", error);
   });
@@ -802,21 +1046,23 @@ if (sortWindowButton && sortRecentButton && sortOldestButton) {
 }
 
 if (togglePinnedButton) {
-  togglePinnedButton.addEventListener("click", () => {
+  togglePinnedButton.addEventListener("click", async () => {
     hidePinned = !hidePinned;
     updatePinnedToggleState();
-    renderTabs(getVisibleTabs());
+    const tabs = await getVisibleTabs();
+    renderTabs(tabs);
   });
   updatePinnedToggleState();
 }
 
 if (searchInput) {
-  searchInput.addEventListener("input", () => {
+  searchInput.addEventListener("input", async () => {
     searchQuery = searchInput.value ?? "";
-    renderTabs(getVisibleTabs());
+    const tabs = await getVisibleTabs();
+    renderTabs(tabs);
     updateSearchClearVisibility();
   });
-  searchInput.addEventListener("keydown", (event) => {
+  searchInput.addEventListener("keydown", async (event) => {
     event.stopPropagation();
     if (event.key === "Enter") {
       if (focusFirstTabItem()) {
@@ -828,7 +1074,8 @@ if (searchInput) {
       if (searchInput.value) {
         searchInput.value = "";
         searchQuery = "";
-        renderTabs(getVisibleTabs());
+        const tabs = await getVisibleTabs();
+        renderTabs(tabs);
         updateSearchClearVisibility();
       } else {
         searchInput.blur();
@@ -839,21 +1086,22 @@ if (searchInput) {
 }
 
 if (searchClearButton) {
-  searchClearButton.addEventListener("click", () => {
+  searchClearButton.addEventListener("click", async () => {
     if (!searchInput) {
       return;
     }
     searchInput.value = "";
     searchQuery = "";
-    renderTabs(getVisibleTabs());
+    const tabs = await getVisibleTabs();
+    renderTabs(tabs);
     updateSearchClearVisibility();
     searchInput.focus();
   });
 }
 
 if (selectVisibleButton) {
-  selectVisibleButton.addEventListener("click", () => {
-    toggleVisibleSelection();
+  selectVisibleButton.addEventListener("click", async () => {
+    await toggleVisibleSelection();
   });
 }
 
@@ -981,7 +1229,8 @@ const OPTIONS_CONFIG = [
       hidePinnedByDefault = value;
       hidePinned = value;
       updatePinnedToggleState();
-      renderTabs(getVisibleTabs());
+      const tabs = await getVisibleTabs();
+      renderTabs(tabs);
       try {
         await browser.storage.local.set({
           [HIDE_PINNED_BY_DEFAULT_KEY]: value,
@@ -999,7 +1248,8 @@ const OPTIONS_CONFIG = [
     defaultValue: false,
     onChange: async (value) => {
       pinTabsAtTop = value;
-      renderTabs(getVisibleTabs());
+      const tabs = await getVisibleTabs();
+      renderTabs(tabs);
       try {
         await browser.storage.local.set({
           [PIN_TABS_AT_TOP_KEY]: value,
@@ -1017,7 +1267,8 @@ const OPTIONS_CONFIG = [
     defaultValue: false,
     onChange: async (value) => {
       showFavicons = value;
-      renderTabs(getVisibleTabs());
+      const tabs = await getVisibleTabs();
+      renderTabs(tabs);
       try {
         await browser.storage.local.set({
           [SHOW_FAVICONS_KEY]: value,
@@ -1235,7 +1486,7 @@ init().catch((error) => {
   console.error("Unexpected error initializing popup:", error);
 });
 
-function handleGlobalKeydown(event) {
+async function handleGlobalKeydown(event) {
   const isModifier = event.altKey || event.ctrlKey || event.metaKey || event.shiftKey;
   const activeElement = document.activeElement;
   const tagName = activeElement?.tagName?.toLowerCase() ?? "";
@@ -1320,7 +1571,8 @@ function handleGlobalKeydown(event) {
 
   if (!isModifier) {
     if (event.key === "a" || event.key === "A") {
-      if (toggleVisibleSelection()) {
+      const result = await toggleVisibleSelection();
+      if (result) {
         event.preventDefault();
       }
       return;
@@ -1338,37 +1590,68 @@ function handleGlobalKeydown(event) {
       const activeItem = getActiveTabItem();
       if (activeItem) {
         event.preventDefault();
-        const tabId = Number(activeItem.dataset.tabId);
-        const windowId = Number(activeItem.dataset.windowId);
-        focusTab(tabId, Number.isNaN(windowId) ? undefined : windowId).catch((error) => {
-          console.error("Unexpected error focusing tab with Enter:", error);
-        });
+        const isHistoryItem = activeItem.dataset.isHistoryItem === "true";
+        if (isHistoryItem) {
+          // Open history item in a new tab
+          const historyUrl = activeItem.dataset.historyUrl || "";
+          if (historyUrl) {
+            browser.tabs.create({ url: historyUrl }).catch((error) => {
+              console.error("Failed to open history item with Enter:", error);
+            });
+            if (closePopupAfterOpen) {
+              if (isPopupView) {
+                window.close();
+              } else if (isFullView) {
+                closeFullViewTab().catch((error) => {
+                  console.error("Unexpected error closing full view:", error);
+                });
+              }
+            }
+          }
+        } else {
+          const tabId = Number(activeItem.dataset.tabId);
+          const windowId = Number(activeItem.dataset.windowId);
+          focusTab(tabId, Number.isNaN(windowId) ? undefined : windowId).catch((error) => {
+            console.error("Unexpected error focusing tab with Enter:", error);
+          });
+        }
       }
       return;
     }
     if (event.key === "1") {
       event.preventDefault();
-      setSortMode("window");
+      await setSortMode("window");
       return;
     }
     if (event.key === "2") {
       event.preventDefault();
-      setSortMode("recent");
+      await setSortMode("recent");
       return;
     }
     if (event.key === "3") {
       event.preventDefault();
-      setSortMode("oldest");
+      await setSortMode("oldest");
       return;
     }
     if (event.key === "x" || event.key === "X") {
       const activeItem = getActiveTabItem();
       if (activeItem) {
         event.preventDefault();
-        const tabId = Number(activeItem.dataset.tabId);
-        closeSingleTabImmediate(tabId).catch((error) => {
-          console.error("Unexpected error closing tab with hotkey:", error);
-        });
+        const isHistoryItem = activeItem.dataset.isHistoryItem === "true";
+        if (isHistoryItem) {
+          const historyUrl = activeItem.dataset.historyUrl || "";
+          // Get title from the tab item for confirmation message
+          const titleButton = activeItem.querySelector(".tab-title");
+          const title = titleButton?.title || titleButton?.textContent || "";
+          deleteHistoryItem(historyUrl, title).catch((error) => {
+            console.error("Unexpected error deleting history item with hotkey:", error);
+          });
+        } else {
+          const tabId = Number(activeItem.dataset.tabId);
+          closeSingleTabImmediate(tabId).catch((error) => {
+            console.error("Unexpected error closing tab with hotkey:", error);
+          });
+        }
       }
       return;
     }
