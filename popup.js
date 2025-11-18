@@ -49,12 +49,14 @@ let shouldFocusActiveTab = false;
 let fullViewOrientation = ORIENTATION_HORIZONTAL;
 let focusSearchFirst = false;
 let skipFocusSearchFirstOnce = false;
+let skipRenderTabsFocus = false;
 let confirmBeforeClose = true;
 let closePopupAfterOpen = true;
 let hidePinnedByDefault = false;
 let pinTabsAtTop = false;
 let showFavicons = false;
 let launchHotkey = "Ctrl+Shift+Comma";
+let historySearchReachedCap = false;
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
   dateStyle: "medium",
@@ -98,11 +100,60 @@ async function deleteHistoryItem(url, title) {
       return;
     }
   }
+  
+  // Capture the currently focused item and its index BEFORE deleting
+  const activeItem = getActiveTabItem();
+  const allItems = Array.from(tabContainer.querySelectorAll(".tab-item"));
+  const currentIndex = activeItem ? allItems.indexOf(activeItem) : -1;
+  const wasDeletingFocusedItem = activeItem && activeItem.dataset.historyUrl === url;
+  
   try {
     await browser.history.deleteUrl({ url: url });
     // Refresh the visible tabs to remove the deleted item
     const tabs = await getVisibleTabs();
+    
+    // Skip renderTabs' default focus behavior since we'll handle it manually
+    skipRenderTabsFocus = true;
     renderTabs(tabs);
+    skipRenderTabsFocus = false;
+    
+    // Restore focus to the closest remaining item
+    if (tabs.length > 0) {
+      requestAnimationFrame(() => {
+        const newItems = Array.from(tabContainer.querySelectorAll(".tab-item"));
+        if (newItems.length > 0) {
+          let targetItem = null;
+          
+          if (wasDeletingFocusedItem && currentIndex >= 0) {
+            // If we deleted the focused item, try to focus the same index (or previous if out of bounds)
+            const targetIndex = Math.min(currentIndex, newItems.length - 1);
+            targetItem = newItems[targetIndex] || newItems[newItems.length - 1];
+          } else if (activeItem) {
+            // If we didn't delete the focused item, try to find it again
+            const activeHistoryUrl = activeItem.dataset.historyUrl;
+            const activeTabId = activeItem.dataset.tabId;
+            targetItem = newItems.find(item => {
+              if (activeHistoryUrl) {
+                return item.dataset.historyUrl === activeHistoryUrl;
+              } else if (activeTabId) {
+                return item.dataset.tabId === activeTabId;
+              }
+              return false;
+            });
+          }
+          
+          // Fallback to first item if we couldn't find a target
+          if (!targetItem) {
+            targetItem = newItems[0];
+          }
+          
+          if (targetItem) {
+            targetItem.scrollIntoView({ block: "center", inline: "nearest" });
+            focusElement(targetItem, { preventScroll: false });
+          }
+        }
+      });
+    }
   } catch (error) {
     console.error(`Failed to delete history item ${url}:`, error);
   }
@@ -119,9 +170,16 @@ async function closeSingleTabImmediate(tabId) {
       return;
     }
   }
+  
+  // Capture the currently focused item and its index BEFORE closing
+  const activeItem = getActiveTabItem();
+  const allItems = Array.from(tabContainer.querySelectorAll(".tab-item"));
+  const currentIndex = activeItem ? allItems.indexOf(activeItem) : -1;
+  const wasClosingFocusedItem = activeItem && activeItem.dataset.tabId && String(activeItem.dataset.tabId) === String(tabId);
+  
   try {
     await browser.tabs.remove(tabId);
-    removeClosedTabs([tabId]);
+    removeClosedTabs([tabId], wasClosingFocusedItem ? currentIndex : -1);
   } catch (error) {
     console.error(`Failed to close tab ${tabId}:`, error);
   }
@@ -334,9 +392,16 @@ function updateSearchLabel(tabs) {
   
   const isHistorySearch = isHistoryPrefix(query);
   const count = tabs.length;
-  const labelText = isHistorySearch
-    ? `history search (${count} result${count !== 1 ? "s" : ""})`
-    : `loaded tabs search (${count} result${count !== 1 ? "s" : ""})`;
+  let labelText;
+  if (isHistorySearch) {
+    if (historySearchReachedCap) {
+      labelText = `history search (${count} results, cap reached)`;
+    } else {
+      labelText = `history search (${count} result${count !== 1 ? "s" : ""})`;
+    }
+  } else {
+    labelText = `loaded tabs search (${count} result${count !== 1 ? "s" : ""})`;
+  }
   
   searchLabel.textContent = labelText;
   searchLabel.classList.remove("hidden");
@@ -394,15 +459,13 @@ async function updateSelectVisibleButton(currentVisibleTabs) {
     return;
   }
   const visibleTabs = currentVisibleTabs ?? await getVisibleTabs();
-  // Filter out history items - they can't be bulk-selected/closed
-  const selectableTabs = visibleTabs.filter((tab) => !tab.isHistoryItem);
-  if (selectableTabs.length === 0) {
+  if (visibleTabs.length === 0) {
     selectVisibleButton.disabled = true;
     selectVisibleButton.textContent = "Select all";
     return;
   }
   selectVisibleButton.disabled = false;
-  const allVisibleSelected = selectableTabs.every((tab) => selectedTabIds.has(tab.id));
+  const allVisibleSelected = visibleTabs.every((tab) => selectedTabIds.has(tab.id));
   selectVisibleButton.textContent = allVisibleSelected ? "Clear selection" : "Select all";
 }
 
@@ -411,18 +474,13 @@ async function toggleVisibleSelection() {
   if (visibleTabs.length === 0) {
     return false;
   }
-  // Filter out history items - they can't be bulk-selected/closed
-  const selectableTabs = visibleTabs.filter((tab) => !tab.isHistoryItem);
-  if (selectableTabs.length === 0) {
-    return false;
-  }
-  const allVisibleSelected = selectableTabs.every((tab) => selectedTabIds.has(tab.id));
+  const allVisibleSelected = visibleTabs.every((tab) => selectedTabIds.has(tab.id));
   if (allVisibleSelected) {
-    selectableTabs.forEach((tab) => {
+    visibleTabs.forEach((tab) => {
       selectedTabIds.delete(tab.id);
     });
   } else {
-    selectableTabs.forEach((tab) => {
+    visibleTabs.forEach((tab) => {
       selectedTabIds.add(tab.id);
     });
   }
@@ -457,7 +515,17 @@ function updateTabCount() {
   }
 }
 
-async function removeClosedTabs(closedIds) {
+async function removeClosedTabs(closedIds, focusedIndex = -1) {
+  // Capture the currently focused item if focusedIndex not provided
+  const activeItem = focusedIndex < 0 ? getActiveTabItem() : null;
+  const allItemsBeforeClose = focusedIndex < 0 && activeItem 
+    ? Array.from(tabContainer.querySelectorAll(".tab-item"))
+    : null;
+  const currentIndex = focusedIndex >= 0 
+    ? focusedIndex 
+    : (activeItem && allItemsBeforeClose ? allItemsBeforeClose.indexOf(activeItem) : -1);
+  const activeTabId = activeItem ? activeItem.dataset.tabId : null;
+  
   const closedSet = new Set(closedIds);
   tabCache = tabCache.filter((tab) => !closedSet.has(tab.id));
   closedIds.forEach((tabId) => {
@@ -466,7 +534,52 @@ async function removeClosedTabs(closedIds) {
   updateCloseButtonState();
   updateTabCount();
   const tabs = await getVisibleTabs();
+  
+  // Skip renderTabs' default focus behavior since we'll handle it manually
+  skipRenderTabsFocus = true;
   renderTabs(tabs);
+  skipRenderTabsFocus = false;
+  
+  // Restore focus to the closest remaining item
+  if (tabs.length > 0 && currentIndex >= 0) {
+    requestAnimationFrame(() => {
+      const newItems = Array.from(tabContainer.querySelectorAll(".tab-item"));
+      if (newItems.length > 0) {
+        let targetItem = null;
+        
+        // Try to focus the same index (or previous if out of bounds)
+        const targetIndex = Math.min(currentIndex, newItems.length - 1);
+        targetItem = newItems[targetIndex] || newItems[newItems.length - 1];
+        
+        // If we had a specific tab focused and it wasn't closed, try to find it
+        if (activeTabId && !targetItem) {
+          targetItem = newItems.find(item => {
+            const itemTabId = item.dataset.tabId;
+            return itemTabId && String(itemTabId) === String(activeTabId);
+          });
+        }
+        
+        // Fallback to first item if we couldn't find a target
+        if (!targetItem) {
+          targetItem = newItems[0];
+        }
+        
+        if (targetItem) {
+          targetItem.scrollIntoView({ block: "center", inline: "nearest" });
+          focusElement(targetItem, { preventScroll: false });
+        }
+      }
+    });
+  } else if (tabs.length === 0) {
+    // No items left, focus search or toggle button
+    requestAnimationFrame(() => {
+      if (searchInput && focusSearchFirst) {
+        searchInput.focus({ preventScroll: true });
+      } else if (togglePinnedButton) {
+        focusElement(togglePinnedButton, { preventScroll: isFullView });
+      }
+    });
+  }
 }
 
 function renderTabs(tabs) {
@@ -513,9 +626,9 @@ function renderTabs(tabs) {
     titleButton.textContent = displayTitle;
     titleButton.title = rawTitle;
     if (tab.isHistoryItem) {
-      // History items can't be bulk-selected, so disable checkbox
-      checkbox.disabled = true;
-      checkbox.checked = false;
+      // History items can be selected for deletion
+      checkbox.disabled = false;
+      checkbox.checked = selectedTabIds.has(tab.id);
     } else {
       checkbox.checked = selectedTabIds.has(tab.id);
     }
@@ -647,6 +760,11 @@ function renderTabs(tabs) {
     console.error("Failed to update select visible button:", error);
   });
 
+  // Skip all focus logic if we're handling it manually (e.g., after closing tabs)
+  if (skipRenderTabsFocus) {
+    return;
+  }
+
   if (searchHasFocus && !shouldFocusActiveTab) {
     return;
   }
@@ -727,35 +845,130 @@ async function closeSelectedTabs() {
     return;
   }
 
-  const tabIds = Array.from(selectedTabIds);
+  // Get the current focused item and its index before closing
+  const activeItem = getActiveTabItem();
+  const allItems = Array.from(tabContainer.querySelectorAll(".tab-item"));
+  const currentIndex = activeItem ? allItems.indexOf(activeItem) : -1;
+  const activeTabId = activeItem ? activeItem.dataset.tabId : null;
+  const activeHistoryUrl = activeItem ? activeItem.dataset.historyUrl : null;
+
+  // Get currently visible items to separate tabs from history items
+  const visibleItems = await getVisibleTabs();
+  const selectedIds = Array.from(selectedTabIds);
+  
+  // Separate tabs from history items
+  const selectedTabs = visibleItems.filter((item) => 
+    selectedIds.includes(item.id) && !item.isHistoryItem
+  );
+  const selectedHistoryItems = visibleItems.filter((item) => 
+    selectedIds.includes(item.id) && item.isHistoryItem
+  );
+
+  const tabIds = selectedTabs.map((tab) => tab.id);
+  const historyUrls = selectedHistoryItems.map((item) => item.url).filter(Boolean);
+  
+  // Check if the currently focused item will be closed/deleted
+  const wasFocusedItemClosed = activeItem && (
+    (activeTabId && tabIds.includes(Number(activeTabId))) ||
+    (activeHistoryUrl && historyUrls.includes(activeHistoryUrl))
+  );
 
   if (confirmBeforeClose) {
-    const count = tabIds.length;
-    if (!confirm(`Close ${count} selected tab${count > 1 ? "s" : ""}?`)) {
+    const tabCount = tabIds.length;
+    const historyCount = historyUrls.length;
+    let message = "";
+    if (tabCount > 0 && historyCount > 0) {
+      message = `Close ${tabCount} tab${tabCount > 1 ? "s" : ""} and delete ${historyCount} history item${historyCount > 1 ? "s" : ""}?`;
+    } else if (tabCount > 0) {
+      message = `Close ${tabCount} selected tab${tabCount > 1 ? "s" : ""}?`;
+    } else if (historyCount > 0) {
+      message = `Delete ${historyCount} selected history item${historyCount > 1 ? "s" : ""}?`;
+    }
+    if (message && !confirm(message)) {
       return;
     }
   }
 
   closeButton.disabled = true;
-  closeButton.textContent = "Closing...";
+  closeButton.textContent = tabIds.length > 0 ? "Closing..." : "Deleting...";
 
   try {
-    await browser.tabs.remove(tabIds);
-    await removeClosedTabs(tabIds);
+    // Close tabs first
+    if (tabIds.length > 0) {
+      await browser.tabs.remove(tabIds);
+      await removeClosedTabs(tabIds, wasFocusedItemClosed ? currentIndex : -1);
+    }
+    
+    // Delete history items
+    if (historyUrls.length > 0) {
+      // Capture current focus state after tabs were closed
+      const currentFocusedItem = tabIds.length > 0 ? getActiveTabItem() : activeItem;
+      const currentItems = Array.from(tabContainer.querySelectorAll(".tab-item"));
+      const currentFocusedIndex = currentFocusedItem ? currentItems.indexOf(currentFocusedItem) : -1;
+      const currentHistoryUrl = currentFocusedItem ? currentFocusedItem.dataset.historyUrl : null;
+      const wasDeletingFocusedHistoryItem = currentFocusedItem && currentHistoryUrl && historyUrls.includes(currentHistoryUrl);
+      
+      await Promise.all(
+        historyUrls.map((url) => browser.history.deleteUrl({ url: url }))
+      );
+      // Refresh visible tabs to remove deleted history items
+      const tabs = await getVisibleTabs();
+      
+      // Skip renderTabs' default focus behavior since we'll handle it manually
+      skipRenderTabsFocus = true;
+      renderTabs(tabs);
+      skipRenderTabsFocus = false;
+      
+      // Restore focus to the closest remaining item
+      if (tabs.length > 0) {
+        requestAnimationFrame(() => {
+          const newItems = Array.from(tabContainer.querySelectorAll(".tab-item"));
+          if (newItems.length > 0) {
+            let targetItem = null;
+            
+            if (wasDeletingFocusedHistoryItem && currentFocusedIndex >= 0) {
+              // If we deleted the focused item, try to focus the same index (or previous if out of bounds)
+              const targetIndex = Math.min(currentFocusedIndex, newItems.length - 1);
+              targetItem = newItems[targetIndex] || newItems[newItems.length - 1];
+            } else if (currentFocusedItem) {
+              // If we didn't delete the focused item, try to find it again
+              const targetHistoryUrl = currentFocusedItem.dataset.historyUrl;
+              const targetTabId = currentFocusedItem.dataset.tabId;
+              targetItem = newItems.find(item => {
+                if (targetHistoryUrl) {
+                  return item.dataset.historyUrl === targetHistoryUrl;
+                } else if (targetTabId) {
+                  return item.dataset.tabId === targetTabId;
+                }
+                return false;
+              });
+            }
+            
+            // Fallback to first item if we couldn't find a target
+            if (!targetItem) {
+              targetItem = newItems[0];
+            }
+            
+            if (targetItem) {
+              targetItem.scrollIntoView({ block: "center", inline: "nearest" });
+              focusElement(targetItem, { preventScroll: false });
+            }
+          }
+        });
+      }
+    }
   } catch (error) {
-    console.error("Failed to close tabs:", error);
+    console.error("Failed to close/delete items:", error);
     closeButton.textContent = "Try again";
     closeButton.disabled = false;
     return;
   }
 
+  // Clear selections
+  selectedIds.forEach((id) => selectedTabIds.delete(id));
+
   closeButton.textContent = "Close selected tabs";
   closeButton.disabled = selectedTabIds.size === 0;
-  requestAnimationFrame(() => {
-    if (!focusFirstTabItem()) {
-      togglePinnedButton?.focus();
-    }
-  });
 }
 
 closeButton.addEventListener("click", closeSelectedTabs);
@@ -940,6 +1153,9 @@ async function searchHistory(query) {
       maxResults: MAXIMUM_HISTORY_SEARCH,
     });
     
+    // Check if the API returned the maximum number of results (cap reached)
+    historySearchReachedCap = historyItems.length === MAXIMUM_HISTORY_SEARCH;
+    
     // Map history items to tab-like format
     let results = historyItems.map((item) => ({
       id: item.lastVisitTime, // Use timestamp as unique ID
@@ -984,6 +1200,7 @@ async function searchHistory(query) {
     return results.slice(0, MAXIMUM_HISTORY_SEARCH);
   } catch (error) {
     console.error("Failed to search history:", error);
+    historySearchReachedCap = false; // Reset flag on error
     return [];
   }
 }
@@ -992,9 +1209,11 @@ async function getVisibleTabs() {
   const query = searchQuery.trim();
   if (query && isHistoryPrefix(query)) {
     // History search mode
+    historySearchReachedCap = false; // Reset flag before search
     const results = await searchHistory(query);
     return results;
   }
+  historySearchReachedCap = false; // Not a history search
   
   // Regular tab filtering
   const sorted = getSortedTabs();
@@ -1787,5 +2006,102 @@ document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible") {
     ensurePreferredFocus();
   }
+});
+
+// Polling mechanism to maintain focus on list or search bar
+function checkAndRestoreFocus() {
+  // Only check if window is visible and has focus
+  if (document.visibilityState !== "visible" || !document.hasFocus()) {
+    return;
+  }
+  
+  const activeElement = document.activeElement;
+  
+  // Check if focus is on search input
+  const isOnSearch = activeElement === searchInput;
+  
+  // Check if focus is on a tab item or its children (checkbox, button, etc.)
+  const isOnTabItem = activeElement?.closest?.(".tab-item");
+  
+  // Check if focus is on a valid interactive element (buttons, panels, etc.)
+  const isOnInteractive = activeElement?.closest?.("button") || 
+                          activeElement?.closest?.("[role='dialog']") ||
+                          activeElement?.closest?.("[role='menu']");
+  
+  // If focus is not on search, tab item, or other valid interactive element, restore it
+  if (!isOnSearch && !isOnTabItem && !isOnInteractive) {
+    // Don't refocus if we're in an input/textarea/select (might be in options or elsewhere)
+    const tagName = activeElement?.tagName?.toLowerCase() ?? "";
+    const isEditableInput = tagName === "input" || tagName === "textarea" || tagName === "select";
+    
+    if (!isEditableInput) {
+      // Try to focus on search first if that preference is set
+      if (focusSearchFirst && searchInput) {
+        searchInput.focus({ preventScroll: true });
+        return;
+      }
+      
+      // Otherwise, focus on the first tab item
+      const firstItem = tabContainer.querySelector(".tab-item");
+      if (firstItem) {
+        firstItem.focus({ preventScroll: false });
+      }
+    }
+  }
+}
+
+// Set up polling interval to check focus every 100ms
+let focusCheckInterval = null;
+
+function startFocusPolling() {
+  // Clear any existing interval
+  if (focusCheckInterval !== null) {
+    clearInterval(focusCheckInterval);
+  }
+  
+  // Start polling every 100ms
+  focusCheckInterval = setInterval(checkAndRestoreFocus, 100);
+}
+
+function stopFocusPolling() {
+  if (focusCheckInterval !== null) {
+    clearInterval(focusCheckInterval);
+    focusCheckInterval = null;
+  }
+}
+
+// Start polling after initialization
+init().catch((error) => {
+  console.error("Unexpected error initializing popup:", error);
+}).then(() => {
+  // Start focus polling after initial setup
+  startFocusPolling();
+});
+
+// Stop polling when page becomes hidden
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    ensurePreferredFocus();
+    startFocusPolling();
+  } else {
+    stopFocusPolling();
+  }
+});
+
+// Stop polling when window loses focus
+window.addEventListener("blur", () => {
+  stopFocusPolling();
+});
+
+// Resume polling when window gains focus
+window.addEventListener("focus", () => {
+  if (document.visibilityState === "visible") {
+    startFocusPolling();
+  }
+});
+
+// Clean up on page unload
+window.addEventListener("beforeunload", () => {
+  stopFocusPolling();
 });
 
