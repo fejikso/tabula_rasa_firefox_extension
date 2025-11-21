@@ -10,16 +10,11 @@ Press **F8** to launch, type to search, then use **J/K** to navigate and **Enter
 
 **Low-latency tab control** for power users:
 
-- **Search & filter** tabs instantly as you type
-
+- **Search & filter** tabs and browser history instantly as you type
 - **Navigate** with Vim-style **J/K** keys (or jump to top/bottom with **Ctrl+J/K**)
-
 - **Batch operations**: Select multiple tabs with **Space**, close all selected with **Ctrl+Enter**
-
 - **Sort tabs** by browser order, most recent, or oldest (**1/2/3** keys)
-
 - **Two views**: Compact popup for quick actions, or full-page view with URL and metadata
-
 - **Customizable**: Change launch hotkey, default view, layout, and behavior preferences
 
 ## **Keyboard Shortcuts**
@@ -27,29 +22,17 @@ Press **F8** to launch, type to search, then use **J/K** to navigate and **Enter
 Once the tab list has focus (press **Enter** after searching), these shortcuts work:
 
 - **F8** — Launch Tabula Rasa
-
 - **J/K** — Navigate down/up
-
 - **Ctrl/Cmd + J/K** — Jump to top/bottom of the list
-
-- **Enter** — Switch to focused tab
-
-- **X** — Close focused tab
-
+- **Enter** — Switch to focused tab (or open history item in new tab)
+- **X** — Close focused tab (or delete history item from history)
 - **Space** — Toggle selection
-
-- **Ctrl/Cmd + Enter** — Close all selected tabs
-
+- **Ctrl/Cmd + Enter** — Close all selected tabs (or delete all selected history items)
 - **P** — Toggle pinned tabs
-
 - **A** — Select/deselect all visible tabs
-
 - **1/2/3** — Switch sorting: Browser / Recent / Oldest
-
 - **S / Esc** — **S** focuses search / **Esc** clears search
-
 - **L** — Toggle horizontal/vertical layout (Full View only)
-
 - **Q** — Exit Tabula Rasa (popup or full view)
 
 ## **Privacy First**
@@ -70,11 +53,11 @@ Follow this step-by-step example to experience the core value of Tabula Rasa—m
 
 4. **Select Tabs to Close:** When focused on a tab you want to close later, press **Spacebar** to toggle its selection checkbox. Repeat this process for multiple tabs.  
 
-5. **Close Focused Tab:** If you immediately want to close the tab currently in focus, press **X**. The focus automatically shifts to the next tab.  
+5. **Close Focused Tab:** If you immediately want to close the tab currently in focus, press **X**. The focus automatically shifts to the next tab. For history items, **X** deletes the item from history instead.  
 
-6. **Switch to Tab:** Find a tab you want to switch to and continue working on. While it's in focus, press **Enter**. Tabula Rasa will close, and your browser will immediately jump to that tab.  
+6. **Switch to Tab:** Find a tab you want to switch to and continue working on. While it's in focus, press **Enter**. Tabula Rasa will close, and your browser will immediately jump to that tab. For history items, **Enter** opens the page in a new tab.  
 
-7. **Batch Close:** After relaunching, if you have selected tabs remaining, press **Ctrl/Cmd \+ Enter** to close all selected tabs at once.  
+7. **Batch Close:** After relaunching, if you have selected tabs remaining, press **Ctrl/Cmd \+ Enter** to close all selected tabs at once. For history items, this deletes all selected items from history.  
 
 8. **Exit:** Press **Q** to exit Tabula Rasa (works in both popup and full views).
 
@@ -92,6 +75,20 @@ Follow this step-by-step example to experience the core value of Tabula Rasa—m
 
 6. Press **Enter** for the browser to refocus to that tab.
 
+## **🚀 Full Keyboard Workflow Example 3: History Search**
+
+1. Launch the app (default key: F8)
+
+2. Press **S** to focus on the search bar (if you're not there already)
+
+3. Type `history:` or `hist:` followed by your search term (e.g., `history:github`)
+
+4. Browse your history results using **J/K** to navigate
+
+5. Press **Enter** to open a history item in a new tab, or **X** to delete it from history
+
+6. Use **Space** to select multiple history items, then **Ctrl/Cmd + Enter** to delete all selected items from history
+
 ## **🔍 Advanced Search Features**
 
 The search box supports advanced filtering with prefixes and multiple search terms. All searches are case-insensitive.
@@ -103,7 +100,14 @@ Search your browser history instead of open tabs:
 - **`history:` or `hist:`** prefix searches browser history instead of open tabs.  
   Example: `history:github` or `hist:github` searches your browsing history for "github".
 
-When using history search, results are limited to 250 items maximum. The search label will indicate if the cap was reached.
+**History search features:**
+
+- Results are limited to 250 items maximum. The search label shows "history search (N results)" or "history search (N results, cap reached)" if the limit is hit.
+- Clicking a history item or pressing **Enter** on a focused history item **opens it in a new tab**.
+- Pressing **X** on a history item **deletes it from your browser history** (not closes a tab). A confirmation dialog appears if confirmation is enabled in settings.
+- History results are sorted according to your selected sort mode (**1/2/3** keys): Browser order (defaults to recent), Most Recent, or Oldest.
+- History items show the same information as tabs: title, URL, and last accessed time.
+- You can select history items for batch deletion using **Space** to toggle selection and **Ctrl/Cmd + Enter** to delete all selected items from history.
 
 ### **Field-Specific Search**
 
@@ -143,13 +147,13 @@ Both views share the same filters and selections, ensuring a seamless experience
 
 Access the **Options** panel (press **O** or click the button) to configure persistent preferences:
 
-* **Launch Hotkey:** Change the keyboard shortcut (e.g., F9, Ctrl+Comma).  The author prefers Ctrl+Shift+Comma as it seems to conflict with no other extensions or Firefox's own hotkeys.
+- **Launch Hotkey:** Change the keyboard shortcut (e.g., F9, Ctrl+Comma).  The author prefers Ctrl+Shift+Comma as it seems to conflict with no other extensions or Firefox's own hotkeys.
 
-* **Default View:** Always open in the full-page layout.  
+- **Default View:** Always open in the full-page layout.  
 
-* **Layout:** Choose between horizontal or vertical split in full view.  
+- **Layout:** Choose between horizontal or vertical split in full view.  
 
-* **Behavior:** Set defaults for hiding pinned tabs, confirming before close, and more.
+- **Behavior:** Set defaults for hiding pinned tabs, confirming before close, and more.
 
 ### **Advanced Hotkey Configuration**
 
