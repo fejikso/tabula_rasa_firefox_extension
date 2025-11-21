@@ -2,6 +2,8 @@
 
 A keyboard-first simple tab manager that lets you navigate, search, and close tabs instantly—all without touching your mouse.
 
+This extension can be found here: https://addons.mozilla.org/en-US/firefox/addon/tabula-rasa/
+
 ## **Quick Start**
 
 Press **F8** to launch, type to search, then use **J/K** to navigate and **Enter** to switch tabs. Close individual tabs with **X**, or select multiple tabs with **Space** and batch-close with **Ctrl+Enter**.
