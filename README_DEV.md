@@ -61,7 +61,7 @@ The extension uses `browser.storage.local`:
 | Key | Purpose |
 | --- | --- |
 | `tabulaRasa.sortMode` | Last chosen sort order (`window`, `recent`, `oldest`). |
-| `tabulaRasa.launchFullView` | Boolean flag indicating whether the full page should open by default (F8/command invocation). |
+| `tabulaRasa.launchFullView` | Boolean flag indicating whether the full page should open by default (default Alt+Shift+Period command invocation). |
 
 Always guard `storage.local` reads with defaults to avoid regressions.
 

@@ -28,7 +28,7 @@ const isFullView = pathName.endsWith(`/${FULL_VIEW_FILE}`) || pathName.endsWith(
 
 const selectedTabIds = new Set();
 let tabCache = [];
-let sortMode = "window";
+let sortMode = "recent";
 const SORT_MODE_KEY = "tabulaRasa.sortMode";
 const LAUNCH_FULL_VIEW_KEY = "tabulaRasa.launchFullView";
 const FULL_VIEW_ORIENTATION_KEY = "tabulaRasa.fullViewOrientation";
@@ -54,8 +54,9 @@ let confirmBeforeClose = true;
 let closePopupAfterOpen = true;
 let hidePinnedByDefault = false;
 let pinTabsAtTop = false;
-let showFavicons = false;
-let launchHotkey = "Ctrl+Shift+Comma";
+let showFavicons = true;
+const DEFAULT_LAUNCH_HOTKEY = "Alt+Shift+Period";
+let launchHotkey = DEFAULT_LAUNCH_HOTKEY;
 let historySearchReachedCap = false;
 
 const dateFormatter = new Intl.DateTimeFormat(undefined, {
@@ -64,7 +65,184 @@ const dateFormatter = new Intl.DateTimeFormat(undefined, {
 });
 const URL_DISPLAY_MAX = 80;
 const MAXIMUM_HISTORY_SEARCH = 250;
+const HOTKEY_PRIMARY_MODIFIER_OPTIONS = [
+  { value: "Ctrl", label: "Ctrl" },
+  { value: "Alt", label: "Alt" },
+  { value: "", label: "None" },
+];
+const HOTKEY_SECONDARY_MODIFIER_OPTIONS = [
+  { value: "Ctrl", label: "Ctrl" },
+  { value: "Alt", label: "Alt" },
+  { value: "Shift", label: "Shift" },
+  { value: "", label: "None" },
+];
+const HOTKEY_KEY_OPTIONS = [
+  { value: "Comma", label: "Comma (,)" },
+  { value: "Period", label: "Period (.)" },
+  { value: "Backquote", label: "Backtick (`)" },
+  { value: "Backslash", label: "Backslash (\\)" },
+  { value: "J", label: "J" },
+  { value: "K", label: "K" },
+  { value: "F6", label: "F6" },
+  { value: "F7", label: "F7" },
+  { value: "F8", label: "F8" },
+  { value: "F9", label: "F9" },
+];
+const HOTKEY_ALLOWED_PRIMARY_VALUES = HOTKEY_PRIMARY_MODIFIER_OPTIONS.map((opt) => opt.value).filter(Boolean);
+const HOTKEY_ALLOWED_SECONDARY_VALUES = HOTKEY_SECONDARY_MODIFIER_OPTIONS.map((opt) => opt.value).filter(Boolean);
+const HOTKEY_ALLOWED_MODIFIER_VALUES = Array.from(
+  new Set([...HOTKEY_ALLOWED_PRIMARY_VALUES, ...HOTKEY_ALLOWED_SECONDARY_VALUES])
+);
+const HOTKEY_ALLOWED_KEY_VALUES = new Set(HOTKEY_KEY_OPTIONS.map((opt) => opt.value));
 
+function parseHotkeyShortcut(shortcut) {
+  const fallbackKey = DEFAULT_LAUNCH_HOTKEY.split("+").pop() || "Period";
+  const fallback = { primary: "", secondary: "", key: fallbackKey };
+  if (typeof shortcut !== "string" || !shortcut.trim()) {
+    return fallback;
+  }
+  const parts = shortcut
+    .split("+")
+    .map((segment) => segment.trim())
+    .filter(Boolean);
+  if (parts.length === 0) {
+    return fallback;
+  }
+  const keyCandidate = parts.pop();
+  const key = HOTKEY_ALLOWED_KEY_VALUES.has(keyCandidate) ? keyCandidate : fallback.key;
+  const modifiers = parts.filter((modifier) => HOTKEY_ALLOWED_MODIFIER_VALUES.includes(modifier));
+  const primary = modifiers.find((modifier) => HOTKEY_ALLOWED_PRIMARY_VALUES.includes(modifier)) || "";
+  const secondary = modifiers.find(
+    (modifier) => modifier !== primary && HOTKEY_ALLOWED_SECONDARY_VALUES.includes(modifier)
+  ) || "";
+  return { primary, secondary, key };
+}
+
+const DEFAULT_HOTKEY_COMPONENTS = parseHotkeyShortcut(DEFAULT_LAUNCH_HOTKEY);
+
+function composeHotkeyShortcut(primaryModifier, secondaryModifier, keyValue) {
+  const normalizedPrimary = HOTKEY_ALLOWED_PRIMARY_VALUES.includes(primaryModifier) ? primaryModifier : "";
+  const normalizedSecondary =
+    HOTKEY_ALLOWED_SECONDARY_VALUES.includes(secondaryModifier) && secondaryModifier !== normalizedPrimary
+      ? secondaryModifier
+      : "";
+  const normalizedKey = HOTKEY_ALLOWED_KEY_VALUES.has(keyValue) ? keyValue : DEFAULT_HOTKEY_COMPONENTS.key;
+  const pieces = [];
+  if (normalizedPrimary) {
+    pieces.push(normalizedPrimary);
+  }
+  if (normalizedSecondary) {
+    pieces.push(normalizedSecondary);
+  }
+  pieces.push(normalizedKey);
+  return pieces.join("+");
+}
+
+async function setLaunchHotkeyPreference(shortcut, { persist = true } = {}) {
+  const components = parseHotkeyShortcut(shortcut);
+  const normalizedShortcut = composeHotkeyShortcut(components.primary, components.secondary, components.key);
+  try {
+    await browser.commands.update({
+      name: "_execute_action",
+      shortcut: normalizedShortcut,
+    });
+    if (persist) {
+      await browser.storage.local.set({
+        [LAUNCH_HOTKEY_KEY]: normalizedShortcut,
+      });
+    }
+    launchHotkey = normalizedShortcut;
+    updateLaunchHotkeyDisplay();
+    return true;
+  } catch (error) {
+    console.error("Failed to update launch hotkey:", error);
+    return false;
+  }
+}
+
+function renderLaunchHotkeyOption({ labelEl, storedValue, labelText, onChange }) {
+  if (!labelEl) {
+    return;
+  }
+  labelEl.style.flexDirection = "column";
+  labelEl.style.alignItems = "flex-start";
+  labelEl.style.gap = "8px";
+  labelEl.style.cursor = "default";
+
+  const title = document.createElement("span");
+  title.textContent = labelText;
+  labelEl.appendChild(title);
+
+  const controlsRow = document.createElement("div");
+  controlsRow.style.display = "flex";
+  controlsRow.style.flexWrap = "wrap";
+  controlsRow.style.gap = "8px";
+  controlsRow.style.width = "100%";
+
+  const primarySelect = document.createElement("select");
+  const secondarySelect = document.createElement("select");
+  const keySelect = document.createElement("select");
+
+  const selects = [
+    { element: primarySelect, options: HOTKEY_PRIMARY_MODIFIER_OPTIONS, ariaLabel: "Modifier 1" },
+    { element: secondarySelect, options: HOTKEY_SECONDARY_MODIFIER_OPTIONS, ariaLabel: "Modifier 2" },
+    { element: keySelect, options: HOTKEY_KEY_OPTIONS, ariaLabel: "Key" },
+  ];
+
+  selects.forEach(({ element, options, ariaLabel }) => {
+    element.style.flex = "1 1 0";
+    element.style.minWidth = "120px";
+    element.style.padding = "4px 8px";
+    element.style.borderRadius = "4px";
+    element.style.border = "1px solid var(--border)";
+    element.setAttribute("aria-label", ariaLabel);
+    options.forEach((opt) => {
+      const optionEl = document.createElement("option");
+      optionEl.value = opt.value;
+      optionEl.textContent = opt.label;
+      element.appendChild(optionEl);
+    });
+  });
+
+  const initialShortcut =
+    typeof storedValue === "string" && storedValue.trim() ? storedValue : DEFAULT_LAUNCH_HOTKEY;
+  const components = parseHotkeyShortcut(initialShortcut);
+
+  primarySelect.value = components.primary;
+  secondarySelect.value = components.secondary;
+  keySelect.value = components.key;
+
+  let lastShortcut = composeHotkeyShortcut(primarySelect.value, secondarySelect.value, keySelect.value);
+
+  async function handleShortcutChange() {
+    const nextShortcut = composeHotkeyShortcut(primarySelect.value, secondarySelect.value, keySelect.value);
+    if (!nextShortcut || nextShortcut === lastShortcut) {
+      return;
+    }
+    const success = typeof onChange === "function" ? await onChange(nextShortcut) : true;
+    if (success) {
+      lastShortcut = nextShortcut;
+      return;
+    }
+    const current = parseHotkeyShortcut(lastShortcut);
+    primarySelect.value = current.primary;
+    secondarySelect.value = current.secondary;
+    keySelect.value = current.key;
+  }
+
+  selects.forEach(({ element }) => {
+    element.addEventListener("change", () => {
+      handleShortcutChange().catch((error) => {
+        console.error("Failed to apply launch hotkey selection:", error);
+      });
+    });
+  });
+
+  controlsRow.appendChild(primarySelect);
+  controlsRow.appendChild(secondarySelect);
+  controlsRow.appendChild(keySelect);
+  labelEl.appendChild(controlsRow);
+}
 function truncateUrl(url) {
   if (!url || url.length <= URL_DISPLAY_MAX) {
     return url;
@@ -353,11 +531,12 @@ async function restoreSortMode() {
     if (typeof stored?.[PIN_TABS_AT_TOP_KEY] === "boolean") {
       pinTabsAtTop = stored[PIN_TABS_AT_TOP_KEY];
     }
-    const storedHotkey = stored?.[LAUNCH_HOTKEY_KEY];
-    if (typeof storedHotkey === "string" && storedHotkey.trim()) {
-      launchHotkey = storedHotkey;
+    let storedHotkey = stored?.[LAUNCH_HOTKEY_KEY];
+    const hasStoredHotkey = typeof storedHotkey === "string" && storedHotkey.trim().length > 0;
+    if (!hasStoredHotkey) {
+      storedHotkey = DEFAULT_LAUNCH_HOTKEY;
     }
-    updateLaunchHotkeyDisplay();
+    await setLaunchHotkeyPreference(storedHotkey, { persist: !hasStoredHotkey });
     await loadOptions();
   } catch (error) {
     console.error("Failed to restore sort mode preference:", error);
@@ -1360,32 +1539,10 @@ const OPTIONS_CONFIG = [
   {
     id: "launch-hotkey",
     label: "Launch hotkey",
-    type: "select",
+    type: "hotkey",
     storageKey: LAUNCH_HOTKEY_KEY,
-    defaultValue: "F8",
-    options: [
-      { value: "F8", label: "F8" },
-      { value: "F9", label: "F9" },
-      { value: "Ctrl+Comma", label: "Ctrl+Comma" },
-      { value: "Ctrl+Shift+Comma", label: "Ctrl+Shift+Comma" },
-      { value: "Ctrl+Period", label: "Ctrl+Period" },
-      { value: "Ctrl+Shift+Period", label: "Ctrl+Shift+Period" },
-    ],
-    onChange: async (value) => {
-      try {
-        await browser.commands.update({
-          name: "_execute_action",
-          shortcut: value,
-        });
-        await browser.storage.local.set({
-          [LAUNCH_HOTKEY_KEY]: value,
-        });
-        launchHotkey = value;
-        updateLaunchHotkeyDisplay();
-      } catch (error) {
-        console.error("Failed to update launch hotkey:", error);
-      }
-    },
+    defaultValue: DEFAULT_LAUNCH_HOTKEY,
+    onChange: async (shortcut) => setLaunchHotkeyPreference(shortcut),
   },
   {
     id: "focus-search-first",
@@ -1483,7 +1640,7 @@ const OPTIONS_CONFIG = [
     label: "Show favicons",
     type: "checkbox",
     storageKey: SHOW_FAVICONS_KEY,
-    defaultValue: false,
+    defaultValue: true,
     onChange: async (value) => {
       showFavicons = value;
       const tabs = await getVisibleTabs();
@@ -1512,39 +1669,34 @@ async function loadOptions() {
 
     OPTIONS_CONFIG.forEach((option) => {
       const storedValue = stored[option.storageKey];
-      if (storedValue !== undefined) {
-        if (option.type === "checkbox") {
-          if (option.id === "vertical-layout") {
-            const mode = storedValue === ORIENTATION_VERTICAL;
-            if (mode !== (fullViewOrientation === ORIENTATION_VERTICAL)) {
-              applyFullViewOrientation(storedValue);
-            }
-          } else if (option.id === "launch-full-view") {
-            launchFullViewByDefault = storedValue;
-          } else if (option.id === "focus-search-first") {
-            focusSearchFirst = storedValue !== undefined ? storedValue : option.defaultValue;
-          } else if (option.id === "confirm-before-close") {
-            confirmBeforeClose = storedValue !== undefined ? storedValue : option.defaultValue;
-          } else if (option.id === "close-popup-after-open") {
-            closePopupAfterOpen = storedValue !== undefined ? storedValue : option.defaultValue;
-          } else if (option.id === "hide-pinned-by-default") {
-            hidePinnedByDefault = storedValue !== undefined ? storedValue : option.defaultValue;
-          } else if (option.id === "pin-tabs-at-top") {
-            pinTabsAtTop = storedValue !== undefined ? storedValue : option.defaultValue;
-          } else if (option.id === "show-favicons") {
-            showFavicons = storedValue !== undefined ? storedValue : option.defaultValue;
+      if (storedValue === undefined) {
+        return;
+      }
+      if (option.type === "checkbox") {
+        if (option.id === "vertical-layout") {
+          const mode = storedValue === ORIENTATION_VERTICAL;
+          if (mode !== (fullViewOrientation === ORIENTATION_VERTICAL)) {
+            applyFullViewOrientation(storedValue);
           }
-        } else if (option.type === "select" && option.id === "launch-hotkey") {
-        const hotkey = storedValue || option.defaultValue;
+        } else if (option.id === "launch-full-view") {
+          launchFullViewByDefault = storedValue;
+        } else if (option.id === "focus-search-first") {
+          focusSearchFirst = storedValue !== undefined ? storedValue : option.defaultValue;
+        } else if (option.id === "confirm-before-close") {
+          confirmBeforeClose = storedValue !== undefined ? storedValue : option.defaultValue;
+        } else if (option.id === "close-popup-after-open") {
+          closePopupAfterOpen = storedValue !== undefined ? storedValue : option.defaultValue;
+        } else if (option.id === "hide-pinned-by-default") {
+          hidePinnedByDefault = storedValue !== undefined ? storedValue : option.defaultValue;
+        } else if (option.id === "pin-tabs-at-top") {
+          pinTabsAtTop = storedValue !== undefined ? storedValue : option.defaultValue;
+        } else if (option.id === "show-favicons") {
+          showFavicons = storedValue !== undefined ? storedValue : option.defaultValue;
+        }
+      } else if (option.type === "hotkey") {
+        const hotkey = typeof storedValue === "string" && storedValue.trim() ? storedValue : option.defaultValue;
         launchHotkey = hotkey;
         updateLaunchHotkeyDisplay();
-          browser.commands.update({
-            name: "_execute_action",
-            shortcut: hotkey,
-          }).catch((error) => {
-            console.error("Failed to restore launch hotkey:", error);
-          });
-        }
       }
     });
 
@@ -1611,6 +1763,13 @@ async function loadOptions() {
 
           label.appendChild(span);
           label.appendChild(select);
+        } else if (option.type === "hotkey") {
+          renderLaunchHotkeyOption({
+            labelEl: label,
+            storedValue: stored[option.storageKey],
+            labelText: option.label,
+            onChange: option.onChange,
+          });
         }
 
         optionItem.appendChild(label);

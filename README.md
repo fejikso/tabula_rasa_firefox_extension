@@ -4,7 +4,7 @@ A keyboard-first simple tab manager that lets you navigate, search, and close ta
 
 ## **Quick Start**
 
-Press **F8** to launch, type to search, then use **J/K** to navigate and **Enter** to switch tabs. Close individual tabs with **X**, or select multiple tabs with **Space** and batch-close with **Ctrl+Enter**.
+Press **Alt+Shift+Period** (default, fully customizable) to launch, type to search, then use **J/K** to navigate and **Enter** to switch tabs. Close individual tabs with **X**, or select multiple tabs with **Space** and batch-close with **Ctrl+Enter**.
 
 ## **Core Features**
 
@@ -21,7 +21,7 @@ Press **F8** to launch, type to search, then use **J/K** to navigate and **Enter
 
 Once the tab list has focus (press **Enter** after searching), these shortcuts work:
 
-- **F8** — Launch Tabula Rasa
+- **Alt+Shift+Period** — Launch Tabula Rasa (changeable via Options)
 - **J/K** — Navigate down/up
 - **Ctrl/Cmd + J/K** — Jump to top/bottom of the list
 - **Enter** — Switch to focused tab (or open history item in new tab)
@@ -45,7 +45,7 @@ Perfect for developers, researchers, and anyone who manages dozens of tabs and w
 
 Follow this step-by-step example to experience the core value of Tabula Rasa—managing your tabs without touching the mouse.
 
-1. **Launch:** Press **F8** (the default hotkey, which you can change in the Options panel).  
+1. **Launch:** Press **Alt+Shift+Period** (the default hotkey, configurable in Options).  
 
 2. **Filter/Focus:** Since the search box is focused by default (a configurable option), type a substring like "docs" to filter the list. Then press **Enter** to move the focus from the search box to the list of tabs.  
 
@@ -63,7 +63,7 @@ Follow this step-by-step example to experience the core value of Tabula Rasa—m
 
 ## **🚀 Full Keyboard Workflow Example 2**
 
-1. Launch the app (default key: F8)
+1. Launch the app (default key: Alt+Shift+Period)
 
 2. Press **S** to focus on the search bar (if you're not there already)
 
@@ -77,7 +77,7 @@ Follow this step-by-step example to experience the core value of Tabula Rasa—m
 
 ## **🚀 Full Keyboard Workflow Example 3: History Search**
 
-1. Launch the app (default key: F8)
+1. Launch the app (default key: Alt+Shift+Period)
 
 2. Press **S** to focus on the search bar (if you're not there already)
 
@@ -139,15 +139,15 @@ Space-separated terms use AND logic—all terms must match for a tab to be shown
 
 Both views share the same filters and selections, ensuring a seamless experience when switching.
 
-**Popup View:** Quick, compact overlay for immediate navigation and closing. Launched via toolbar icon or **F8**.
+**Popup View:** Quick, compact overlay for immediate navigation and closing. Launched via toolbar icon or **Alt+Shift+Period** (default hotkey).
 
-**Full View:** Spacious layout showing **URL** and **Last Accessed** metadata. Opened via **F8** or by clicking **Open full page view (F)**.
+**Full View:** Spacious layout showing **URL** and **Last Accessed** metadata. Opened via **Alt+Shift+Period** or by clicking **Open full page view (F)**.
 
 ## **⚙️ Customization (Options Panel)**
 
 Access the **Options** panel (press **O** or click the button) to configure persistent preferences:
 
-- **Launch Hotkey:** Change the keyboard shortcut (e.g., F9, Ctrl+Comma).  The author prefers Ctrl+Shift+Comma as it seems to conflict with no other extensions or Firefox's own hotkeys.
+- **Launch Hotkey:** Mix and match modifier dropdowns (Modifier 1: Ctrl/Alt/None, Modifier 2: Ctrl/Alt/Shift/None) with keys (Comma, Period, Backtick, Backslash, J, K, F6-F9). The default is **Alt+Shift+Period**, but you can quickly switch to favorites like **Ctrl+Shift+Comma** if they work better with your setup.
 
 - **Default View:** Always open in the full-page layout.  
 
@@ -157,7 +157,7 @@ Access the **Options** panel (press **O** or click the button) to configure pers
 
 ### **Advanced Hotkey Configuration**
 
-If the built-in hotkey options are insufficient, you can set a fully custom shortcut directly through Firefox's Add-ons UI under **Keyboard Shortcuts**.
+If you need a key outside the provided dropdowns (for example using Meta or number keys), set a fully custom shortcut through Firefox's Add-ons UI under **Keyboard Shortcuts**.
 
 ## **📜 History**
 
