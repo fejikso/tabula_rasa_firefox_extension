@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Tabula Rasa</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <div class="header-row">
+        <div class="brand">
+          <img src="icon.png" alt="" class="logo" />
+          <h1>Tabula Rasa <span id="tab-count" class="tab-count"></span></h1>
+        </div>
+        <button
+          id="expand-button"
+          type="button"
+          class="icon-button"
+          aria-label="Open full page view"
+          title="Open full view (F)"
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            role="presentation"
+            aria-hidden="true"
+          >
+            <path
+              d="M10 2h4v4h-1V3.707L7.354 9.354l-.708-.708L12.293 3H10V2zM3 5h4V4H2v5h1V5zM3 11h4v-1H2v4h5v-1H3v-2z"
+              fill="currentColor"
+            />
+          </svg>
+        </button>
+      </div>      
+      <div class="search-wrapper">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          aria-hidden="true"
+          role="presentation"
+        >
+          <path
+            d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85zm-5.242.656a5 5 0 1 1 0-10 5 5 0 0 1 0 10z"
+            fill="currentColor"
+          />
+        </svg>
+        <label class="search-field">
+          <span class="sr-only">Filter tabs</span>
+          <input
+            id="search-tabs"
+            type="search"
+            placeholder="Search. Press ENTER when done, ESC to clear"
+            title="Hotkey: press S to focus search"
+            autocomplete="off"
+            spellcheck="false"
+            inputmode="search"
+          />
+        </label>
+        <button
+          id="search-clear"
+          type="button"
+          class="search-clear"
+          aria-label="Clear search"
+          title="Clear search (Esc)"
+        >
+          &#x2BBE;
+        </button>
+      </div>
+    </header>
+    <main>
+      <div class="controls-bar">
+        <div class="sort-controls" role="group" aria-label="Sort tabs">
+          <div class="control-block">
+            <button
+              id="toggle-pinned"
+              type="button"
+              class="unified-button unified-button--toggle unified-button--active"
+              aria-pressed="true"
+              title="Hide or show pinned tabs (P)"
+            >
+            Hide pins
+            </button>
+          </div>
+          <div class="ordering-group control-block" aria-label="Sort by">
+            <span class="ordering-title">Sort by</span>
+            <div class="ordering-buttons">
+              <button
+                id="sort-window"
+                type="button"
+                class="unified-button unified-button--active"
+                title="Sort by how tabs are loaded in the browser (Hotkey:1)"
+              >
+                Browser
+              </button>
+              <button
+                id="sort-recent"
+                type="button"
+                class="unified-button"
+                title="Most recent accessed tabs (Hotkey:2)"
+              >
+                Newest
+              </button>
+              <button
+                id="sort-oldest"
+                type="button"
+                class="unified-button"
+                title="Most ancient tabs by access time (Hotkey:3)"
+              >
+                Oldest
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="selection-controls control-block">
+          <button
+            id="select-visible"
+            type="button"
+            class="unified-button"
+            title="Select or clear all visible tabs (A)"
+          >
+            Select all
+          </button>
+        </div>
+      </div>
+      <p id="search-label" class="muted hidden" style="font-size: 12px; margin: 0; padding: 4px 0;"></p>
+      <section id="tab-container" aria-live="polite"></section>
+      <p id="empty-state" class="muted hidden">No tabs to show.</p>
+    </main>
+    <footer class="popup-footer">
+      <button
+        id="close-selected"
+        type="button"
+        class="unified-button unified-button--primary"
+        title="Close selected tabs (Ctrl/Cmd + Enter)"
+        disabled
+      >
+        Close selected
+      </button>
+      <button
+        id="hotkeys-button"
+        type="button"
+        class="unified-button"
+        title="Open hotkey help (?)"
+      >
+        Hotkeys
+      </button>
+      <button
+        id="options-button"
+        type="button"
+        class="unified-button"
+        title="Open options (O)"
+      >
+        Options
+      </button>
+      <button id="tip-button" type="button" class="unified-button" title="Support the author">
+        Tip
+      </button>
+    </footer>
+
+    <aside
+      id="hotkeys-panel"
+      class="about hidden"
+      role="dialog"
+      aria-modal="false"
+      aria-label="Keyboard shortcuts"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <p class="about-title">Keyboard shortcuts</p>
+      <p class="about-copy">
+        While the search box has focus, letter shortcuts type into it. Press Enter once to move focus to the tab list so these hotkeys work.
+      </p>
+      <ul class="about-list">
+        <li>
+          <kbd id="launch-hotkey-display">Alt+Shift+Period</kbd>
+          opens Tabula Rasa from any page.
+        </li>
+        <li><kbd>S</kbd> focuses the search box; <kbd>Esc</kbd> clears it.</li>
+        <li><kbd>J</kbd> moves down the list, <kbd>K</kbd> moves up.</li>
+        <li><kbd>Ctrl</kbd>+<kbd>J</kbd> (or <kbd>⌘</kbd>+<kbd>J</kbd>) jumps to the top; <kbd>Ctrl</kbd>+<kbd>K</kbd> (or <kbd>⌘</kbd>+<kbd>K</kbd>) jumps to the bottom.</li>
+        <li><kbd>Home</kbd> jumps to the top; <kbd>End</kbd> jumps to the bottom.</li>
+        <li><kbd>Enter</kbd> opens the focused tab.</li>
+        <li><kbd>Space</kbd> toggles the focused tab selection.</li>
+        <li><kbd>X</kbd> closes the focused tab item.</li>
+        <li>
+          <kbd>Ctrl</kbd>+<kbd>Enter</kbd> (or <kbd>⌘</kbd>+<kbd>Enter</kbd>) closes all selected tabs.
+        </li>
+        <li>
+          <kbd>Ctrl</kbd>/<kbd>⌘</kbd>+<kbd>Click</kbd> on a tab row closes that tab instantly.
+        </li>
+        <li><kbd>?</kbd> opens/closes the hotkeys panel.</li>
+        <li><kbd>O</kbd> opens/closes the options panel.</li>
+        <li><kbd>P</kbd> hides or shows pinned tabs.</li>
+        <li><kbd>A</kbd> selects or clears all visible tabs.</li>
+        <li><kbd>1</kbd>, <kbd>2</kbd>, <kbd>3</kbd> switch between window, recent, and oldest sorting.</li>
+        <li><kbd>L</kbd> toggles between horizontal and vertical layouts.</li>
+        <li><kbd>F</kbd> opens the full-page view (popup only).</li>
+        <li><kbd>Q</kbd> closes Tabula Rasa.</li>
+      </ul>
+      <p class="about-copy">Use the Hide pins toggle to reveal pinned tabs when needed.</p>
+      <p class="about-title" style="margin-top: 24px;">Advanced Search Features</p>
+      <p class="about-copy">
+        The search box supports advanced filtering with prefixes and multiple search terms:
+      </p>
+      <ul class="about-list">
+        <li>
+          <strong>history:</strong> or <strong>hist:</strong> prefix searches browser history instead of open tabs. Example: <kbd>history:github</kbd> or <kbd>hist:github</kbd> searches your browsing history for "github".
+        </li>
+        <li>
+          <strong>url:</strong> prefix restricts search to URLs only. Example: <kbd>url:github</kbd> finds tabs with "github" in the URL.
+        </li>
+        <li>
+          <strong>title:</strong> prefix restricts search to tab titles only. Example: <kbd>title:docs</kbd> finds tabs with "docs" in the title.
+        </li>
+        <li>
+          <strong>Multiple terms:</strong> Space-separated terms use AND logic. Example: <kbd>test url:git</kbd> finds tabs with "test" (in title or URL) AND "git" in the URL.
+        </li>
+        <li>
+          <strong>Default behavior:</strong> Terms without prefixes search both title and URL. Example: <kbd>mail sync plus</kbd> finds tabs containing "mail" AND "sync" AND "plus" anywhere.
+        </li>
+      </ul>
+      <button
+        id="hotkeys-close"
+        type="button"
+        class="secondary circle-close"
+        aria-label="Close dialog"
+      >
+        &#11199;
+      </button>
+    </aside>
+
+    <aside
+      id="tip-panel"
+      class="about hidden"
+      role="dialog"
+      aria-modal="false"
+      aria-label="Tip the author"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <p class="about-title">Supporting Tabula Rasa</p>
+      <p class="about-copy">
+        Tabula Rasa was created and is maintained by the developer as a project during personal free time.
+      </p>
+      <p class="about-copy">
+        If you find this tool helpful and appreciate the dedicated work involved in its creation and upkeep, please consider showing your support to the author.
+      </p>
+      <p class="about-copy">
+        You can contribute a tip or send a message via
+        <a href="https://buymeacoffee.com/fejikso" target="_blank" rel="noopener noreferrer"
+          >buymeacoffee.com/fejikso</a
+        >.
+      </p>
+      <button
+        id="tip-close"
+        type="button"
+        class="secondary circle-close"
+        aria-label="Close dialog"
+      >
+        &#11199;
+      </button>
+    </aside>
+
+    <aside
+      id="options-panel"
+      class="about hidden"
+      role="dialog"
+      aria-modal="false"
+      aria-label="Options"
+      tabindex="-1"
+      aria-hidden="true"
+    >
+      <p class="about-title">Options</p>
+      <div id="options-container"></div>
+      <button
+        id="options-close"
+        type="button"
+        class="secondary circle-close"
+        aria-label="Close dialog"
+      >
+        &#11199;
+      </button>
+    </aside>
+
+    <template id="tab-item-template">
+      <div class="tab-item" role="group">
+        <label class="tab-checkbox">
+          <input type="checkbox" class="tab-toggle" aria-label="Select tab to close" />
+        </label>
+        <div class="tab-content">
+          <img class="tab-favicon" src="" alt="" style="display: none;" />
+          <button type="button" class="tab-title"></button>
+          <span class="tab-url" aria-hidden="true"></span>
+          <span class="tab-last-accessed" aria-hidden="true"></span>
+          <button
+            type="button"
+            class="tab-close"
+            aria-label="Close this tab"
+            title="Close this tab (Ctrl/Cmd + Click or X)"
+          >
+            &#x274C;
+          </button>
+        </div>
+      </div>
+    </template>
+
+    <script src="browser-polyfill.js"></script>
+    <script src="popup.js" type="module"></script>
+  </body>
+</html>
+

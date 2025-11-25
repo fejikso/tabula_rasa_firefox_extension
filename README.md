@@ -2,7 +2,7 @@
 
 A keyboard-first simple tab manager that lets you navigate, search, and close tabs instantly—all without touching your mouse.
 
-This extension can be found here: https://addons.mozilla.org/en-US/firefox/addon/tabula-rasa/
+This extension can be found here: [addons.mozilla.org/en-US/firefox/addon/tabula-rasa](https://addons.mozilla.org/en-US/firefox/addon/tabula-rasa/)
 
 ## **Quick Start**
 
@@ -174,6 +174,22 @@ If this tool helps streamline your workflow and you appreciate the dedicated eff
 You can contribute a tip or send a message via the in-app Tip button or directly at:  
 
 [buymeacoffee.com/fejikso](https://buymeacoffee.com/fejikso).
+
+## Chrome Build
+
+The repository now ships a Chrome-compatible variant inside the `chrome/` directory. It mirrors the Firefox build, but Chrome does not allow extensions to edit the `_execute_action` shortcut programmatically.
+
+### Install in Chrome
+
+- Open `chrome://extensions`, enable **Developer Mode**, and click **Load unpacked**.
+- Select the `/mnt/projects/firefox_tabularasa/chrome/` folder (or the equivalent path on your machine).
+- After installing, open `chrome://extensions/shortcuts` to assign a launch shortcut for Tabula Rasa.
+
+### Quick smoke test
+
+- Launch from the toolbar, confirm search/filter works, and close a few tabs.
+- Press **F** from the popup to open the full page view and verify layout toggles plus batch-close workflows.
+- Run a `history:` search and delete an entry to confirm history access.
 
 ## **📄 License**
 
