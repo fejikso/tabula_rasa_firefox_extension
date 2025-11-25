@@ -515,6 +515,7 @@ async function restoreSortMode() {
       CLOSE_POPUP_AFTER_OPEN_KEY,
       HIDE_PINNED_BY_DEFAULT_KEY,
       PIN_TABS_AT_TOP_KEY,
+      SHOW_FAVICONS_KEY,
       LAUNCH_HOTKEY_KEY,
     ]);
     const savedMode = stored?.[SORT_MODE_KEY];
@@ -546,6 +547,18 @@ async function restoreSortMode() {
     if (typeof stored?.[PIN_TABS_AT_TOP_KEY] === "boolean") {
       pinTabsAtTop = stored[PIN_TABS_AT_TOP_KEY];
     }
+    if (typeof stored?.[SHOW_FAVICONS_KEY] === "boolean") {
+      showFavicons = stored[SHOW_FAVICONS_KEY];
+    } else {
+      showFavicons = true;
+      try {
+        await browser.storage.local.set({
+          [SHOW_FAVICONS_KEY]: true,
+        });
+      } catch (error) {
+        console.error("Failed to persist default favicon preference:", error);
+      }
+    }
     let storedHotkey = stored?.[LAUNCH_HOTKEY_KEY];
     const hasStoredHotkey = typeof storedHotkey === "string" && storedHotkey.trim().length > 0;
     if (!hasStoredHotkey) {
@@ -571,7 +584,7 @@ function updateCloseButtonState() {
   closeButton.textContent =
     selectedTabIds.size > 0
       ? `Close ${selectedTabIds.size} tab${selectedTabIds.size > 1 ? "s" : ""}`
-      : "Close selected tabs";
+      : "Close selected";
 }
 
 function updateSearchLabel(tabs) {
@@ -1161,7 +1174,7 @@ async function closeSelectedTabs() {
   // Clear selections
   selectedIds.forEach((id) => selectedTabIds.delete(id));
 
-  closeButton.textContent = "Close selected tabs";
+  closeButton.textContent = "Close selected";
   closeButton.disabled = selectedTabIds.size === 0;
 }
 
@@ -1795,12 +1808,30 @@ async function loadOptions() {
         optionsContainer.appendChild(optionItem);
       });
       if (!ENABLE_CUSTOM_LAUNCH_HOTKEY) {
-        const hotkeyNote = document.createElement("p");
+        const hotkeyNote = document.createElement("div");
         hotkeyNote.className = "muted";
         hotkeyNote.style.fontSize = "12px";
         hotkeyNote.style.margin = "4px 0 0";
-        hotkeyNote.textContent =
-          "Chrome controls the launch shortcut. Open chrome://extensions/shortcuts to set Tabula Rasa's hotkey.";
+        hotkeyNote.style.textAlign = "left";
+        hotkeyNote.style.display = "inline-block";
+        hotkeyNote.style.width = "auto";
+        hotkeyNote.style.maxWidth = "100%";
+        hotkeyNote.append("Go to ");
+
+        const shortcutButton = document.createElement("button");
+        shortcutButton.type = "button";
+        shortcutButton.className = "inline-link-button";
+        shortcutButton.textContent = "chrome://extensions/shortcuts";
+        shortcutButton.addEventListener("click", async () => {
+          try {
+            await browser.tabs.create({ url: "chrome://extensions/shortcuts" });
+          } catch (error) {
+            console.error("Failed to open chrome://extensions/shortcuts:", error);
+          }
+        });
+
+        hotkeyNote.appendChild(shortcutButton);
+        hotkeyNote.appendChild(document.createTextNode(" to assign the launch hotkey."));
         optionsContainer.appendChild(hotkeyNote);
       }
     }

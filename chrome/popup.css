@@ -23,8 +23,8 @@ body {
   color: var(--fg);
   font: 14px/1.4 "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
   margin: 0;
-  min-width: 320px;
-  max-width: 420px;
+  min-width: 384px;
+  max-width: 504px;
   min-height: 600px;
   max-height: 720px;
   display: flex;
@@ -330,6 +330,26 @@ header {
   opacity: 0.35;
   cursor: default;
   background: transparent;
+}
+
+.inline-link-button {
+  border: none;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  display: inline;
+  min-width: auto;
+  border-radius: 0;
+  font-weight: 500;
+  vertical-align: baseline;
+}
+
+.inline-link-button:focus-visible {
+  outline: 3px solid rgba(0, 96, 223, 0.35);
+  outline-offset: 2px;
 }
 
 .search-field:focus-within {
